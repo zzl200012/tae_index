@@ -5,8 +5,8 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/stretchr/testify/require"
 	"tae/index/common"
-	"tae/index/utils"
-	"tae/index/utils/io"
+	"tae/index/utils/mock/holder"
+	"tae/index/utils/mock/io"
 	"tae/mock"
 	"testing"
 )
@@ -22,8 +22,8 @@ func TestSegment(t *testing.T) {
 	blockCount := 40
 	rowsPerBlock := 20000
 	segment := mock.NewSegment()
-	holder :=
-	writer := nil
+	holder := holder.NewMockNonAppendableSegmentIndexHolder(segment)
+	writer := io.NewMockSegmentZoneMapIndexWriter()
 	err = writer.Init(holder, cTyp, colIdx)
 	require.NoError(t, err)
 
@@ -46,7 +46,7 @@ func TestSegment(t *testing.T) {
 	metas = append(metas, meta)
 
 	for _, block := range blocks {
-		writer := io.GetStaticFilterIndexWriter()
+		writer := io.NewMockStaticFilterIndexWriter()
 		err = writer.Init(holder, cTyp, colIdx)
 		require.NoError(t, err)
 		err = writer.SetValues(block)
@@ -56,22 +56,27 @@ func TestSegment(t *testing.T) {
 		metas = append(metas, meta)
 	}
 
-	holder.SetZoneMapReader(io.GetSegmentZoneMapIndexReader())
-	err = holder.GetZoneMapReader().Init(holder, metas[0])
+	//helper.SetZoneMapReader(holder, io.NewMockSegmentZoneMapIndexReader())
+	//zoneMapReader := helper.GetZoneMapReader(holder)
+	holder.(*NonAppendableSegmentIndexHolder).SetZoneMapReader(io.NewMockSegmentZoneMapIndexReader())
+	zoneMapReader := holder.(*NonAppendableSegmentIndexHolder).GetZoneMapReader()
+	err = zoneMapReader.Init(holder, metas[0])
 	require.NoError(t, err)
 
-	holder.GetZoneMapReader().Load()
+	zoneMapReader.Load()
 
 	//t.Log(holder.zoneMapReader.Print())
 
-	sfReaders := holder.GetFilterReaders()
+	//sfReaders := helper.GetFilterReaders(holder)
+	sfReaders := holder.(*NonAppendableSegmentIndexHolder).GetFilterReaders()
 	for _, meta := range metas[1:] {
-		reader := io.GetStaticFilterIndexReader()
+		reader := io.NewMockStaticFilterIndexReader()
 		err = reader.Init(holder, meta)
 		require.NoError(t, err)
 		sfReaders = append(sfReaders, reader)
 	}
-	holder.SetFilterReaders(sfReaders)
+	//helper.SetFilterReaders(holder, sfReaders)
+	holder.(*NonAppendableSegmentIndexHolder).SetFilterReaders(sfReaders)
 
 	batch := mock.MockVec(typ, rowsPerBlock / 2, rowsPerBlock * blockCount)
 	res, err = holder.ContainsAnyKeys(batch)

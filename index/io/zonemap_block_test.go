@@ -5,7 +5,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/stretchr/testify/require"
 	"tae/index/common"
-	"tae/index/utils/holder"
+	"tae/index/utils/mock/holder"
 	"tae/mock"
 	"testing"
 )
