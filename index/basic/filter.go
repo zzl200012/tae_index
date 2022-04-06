@@ -111,7 +111,7 @@ func (filter *binaryFuseFilter) Unmarshal(buf []byte) error {
 }
 
 func (filter *binaryFuseFilter) Print() string {
-	s := "[SF]\n"
+	s := "<SF>\n"
 	s += filter.typ.String()
 	s += "\n"
 	s += strconv.Itoa(int(filter.inner.SegmentCount))

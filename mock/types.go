@@ -107,6 +107,39 @@ func Hash(v interface{}, typ types.Type) (uint64, error) {
 	return murmur, nil
 }
 
+func DecodeKey(key []byte, typ types.Type) interface{} {
+	switch typ.Oid {
+	case types.T_int8:
+		return encoding.DecodeInt8(key)
+	case types.T_int16:
+		return encoding.DecodeInt16(key)
+	case types.T_int32:
+		return encoding.DecodeInt32(key)
+	case types.T_int64:
+		return encoding.DecodeInt64(key)
+	case types.T_uint8:
+		return encoding.DecodeUint8(key)
+	case types.T_uint16:
+		return encoding.DecodeUint16(key)
+	case types.T_uint32:
+		return encoding.DecodeUint32(key)
+	case types.T_uint64:
+		return encoding.DecodeUint64(key)
+	case types.T_float32:
+		return encoding.DecodeFloat32(key)
+	case types.T_float64:
+		return encoding.DecodeFloat64(key)
+	case types.T_date:
+		return encoding.DecodeDate(key)
+	case types.T_datetime:
+		return encoding.DecodeDatetime(key)
+	case types.T_char, types.T_varchar:
+		return key
+	default:
+		panic("unsupported type")
+	}
+}
+
 func EncodeKey(key interface{}, typ types.Type) ([]byte, error) {
 	switch typ.Oid {
 	case types.T_int8:

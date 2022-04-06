@@ -167,8 +167,11 @@ func (zm *ZoneMap) GetMinLocked() interface{} {
 }
 
 func (zm *ZoneMap) Print() string {
+	// TODO: support all types
+	zm.mu.RLock()
+	defer zm.mu.RUnlock()
 	// default int32
-	s := "["
+	s := "<ZM>\n["
 	s += strconv.Itoa(int(zm.min.(int32)))
 	s += ","
 	s += strconv.Itoa(int(zm.max.(int32)))

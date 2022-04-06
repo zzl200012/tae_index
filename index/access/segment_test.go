@@ -5,6 +5,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/stretchr/testify/require"
 	"tae/index/common"
+	"tae/index/utils"
 	"tae/index/utils/io"
 	"tae/mock"
 	"testing"
@@ -21,8 +22,8 @@ func TestSegment(t *testing.T) {
 	blockCount := 40
 	rowsPerBlock := 20000
 	segment := mock.NewSegment()
-	holder := NewNonAppendableSegmentIndexHolder(segment)
-	writer := io.GetSegmentZoneMapIndexWriter()
+	holder :=
+	writer := nil
 	err = writer.Init(holder, cTyp, colIdx)
 	require.NoError(t, err)
 

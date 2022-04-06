@@ -19,6 +19,16 @@ func NewNonAppendableBlockIndexHolder(host *mock.Segment) *NonAppendableBlockInd
 	return &NonAppendableBlockIndexHolder{host: host}
 }
 
+func (holder *NonAppendableBlockIndexHolder) GetBlockId() uint32 {
+	return holder.host.GetBlockId()
+}
+
+func (holder *NonAppendableBlockIndexHolder) Print() string {
+	zm := holder.zoneMapReader.Print()
+	sf := holder.staticFilterReader.Print()
+	return zm + "\n" + sf
+}
+
 func (holder *NonAppendableBlockIndexHolder) SetHost(host *mock.Segment) {
 	holder.host = host
 }

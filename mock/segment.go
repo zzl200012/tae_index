@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager/iface"
 )
@@ -50,6 +51,18 @@ func NewSegment() *Segment {
 	_ = seg.Allocate() // first part is for indices
 	seg.bufferManager = manager.MockBufMgr(uint64(1024 * 100))
 	return seg
+}
+
+func (pc *Segment) GetBlockId() uint32 {
+	return 0
+}
+
+func (pc *Segment) GetSegmentId() uint32 {
+	return 0
+}
+
+func (pc *Segment) GetPrimaryKeyType() types.Type {
+	return types.Type{Oid: types.T_int32}
 }
 
 //func (pc *Segment) MakeIndexHolder() *access.SegmentIndexHolder {

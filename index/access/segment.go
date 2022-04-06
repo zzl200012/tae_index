@@ -19,6 +19,10 @@ func NewNonAppendableSegmentIndexHolder(host *mock.Segment) *NonAppendableSegmen
 	return &NonAppendableSegmentIndexHolder{host: host}
 }
 
+func (holder *NonAppendableSegmentIndexHolder) GetSegmentId() uint32 {
+	return 0
+}
+
 func (holder *NonAppendableSegmentIndexHolder) SetHost(host *mock.Segment) {
 	holder.host = host
 }
@@ -151,3 +155,14 @@ func (holder *NonAppendableSegmentIndexHolder) MakeVirtualIndexFile(indexMeta *c
 	return common.MakeVirtualIndexFile(holder.host, indexMeta)
 }
 
+func (holder *NonAppendableSegmentIndexHolder) Print() string {
+	s := ""
+	zm := holder.zoneMapReader.Print()
+	s += zm
+	s += "\n"
+	for _, sf := range holder.staticFilterReaders {
+		s += sf.Print()
+		s += "\n"
+	}
+	return s
+}

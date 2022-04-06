@@ -20,9 +20,8 @@ func TestStaticFilterIndex(t *testing.T) {
 	typ := types.Type{Oid: types.T_int32}
 	colIdx := uint16(0)
 	writer := StaticFilterIndexWriter{}
-	holder := holder.MockNonAppendableSegmentIndexHolder()
-	holder.SetHost(seg)
-	err = writer.Init(holder, cType, colIdx)
+	indexHolder := holder.MockPersistentIndexHolder(seg)
+	err = writer.Init(indexHolder, cType, colIdx)
 	require.NoError(t, err)
 
 	keys := mock.MockVec(typ, 1000, 0)
@@ -35,7 +34,7 @@ func TestStaticFilterIndex(t *testing.T) {
 	require.NoError(t, err)
 
 	reader := StaticFilterIndexReader{}
-	err = reader.Init(holder, meta)
+	err = reader.Init(indexHolder, meta)
 	require.NoError(t, err)
 
 	err = reader.Load()

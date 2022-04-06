@@ -2,6 +2,7 @@ package io
 
 import (
 	"github.com/RoaringBitmap/roaring"
+	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	buf "github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager/iface"
@@ -10,6 +11,7 @@ import (
 	"tae/index/access/access_iface"
 	"tae/index/basic"
 	"tae/index/common"
+	"tae/index/io/io_iface"
 	"tae/mock"
 )
 
@@ -18,6 +20,10 @@ type BlockZoneMapIndexWriter struct {
 	holder access_iface.PersistentIndexHolder
 	inner  *basic.ZoneMap
 	colIdx uint16
+}
+
+func NewBlockZoneMapIndexWriter() io_iface.IBlockZoneMapIndexWriter {
+	return &BlockZoneMapIndexWriter{}
 }
 
 func (writer *BlockZoneMapIndexWriter) Init(holder access_iface.PersistentIndexHolder, cType common.CompressType, colIdx uint16) error {
@@ -69,7 +75,14 @@ func (writer *BlockZoneMapIndexWriter) AddValues(values *vector.Vector) error {
 	return nil
 }
 
-func (writer *BlockZoneMapIndexWriter) SetMinMax(min, max interface{}) {
+func (writer *BlockZoneMapIndexWriter) SetMinMax(min, max interface{}, typ types.Type) {
+	if writer.inner == nil {
+		writer.inner = basic.NewZoneMap(typ, nil)
+	} else {
+		if writer.inner.GetType() != typ {
+			panic(mock.ErrTypeMismatch)
+		}
+	}
 	writer.inner.SetMin(min)
 	writer.inner.SetMax(max)
 }
@@ -79,10 +92,16 @@ type BlockZoneMapIndexReader struct {
 	inner  iface.MangaedNode
 }
 
+func NewBlockZoneMapIndexReader() io_iface.IBlockZoneMapIndexReader {
+	return &BlockZoneMapIndexReader{}
+}
+
 func (reader *BlockZoneMapIndexReader) Init(holder access_iface.PersistentIndexHolder, indexMeta *common.IndexMeta) error {
 	bufferManager := holder.GetBufferManager()
 	vFile := holder.MakeVirtualIndexFile(indexMeta)
 	reader.handle = common.NewIndexBufferNode(bufferManager, vFile, indexMeta.CompType != common.Plain, BlockZoneMapIndexConstructor)
+	//reader.Load()
+	//logrus.Info(reader.inner.DataNode.(*BlockZoneMapIndexMemNode).inner.GetMax())
 	return nil
 }
 
@@ -111,7 +130,12 @@ func (reader *BlockZoneMapIndexReader) MayContainsAnyKeys(keys *vector.Vector) (
 }
 
 func (reader *BlockZoneMapIndexReader) Print() string {
-	panic("todo")
+	reader.Load()
+	s := "<BLK_ZM_READER>"
+	node := reader.inner.DataNode.(*BlockZoneMapIndexMemNode)
+	s += node.inner.Print()
+	reader.Unload()
+	return s
 }
 
 func BlockZoneMapIndexConstructor(vf comm.IVFile, useCompress bool, freeFunc buf.MemoryFreeFunc) buf.IMemoryNode {

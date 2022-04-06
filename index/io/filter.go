@@ -11,6 +11,7 @@ import (
 	"tae/index/access/access_iface"
 	"tae/index/basic"
 	"tae/index/common"
+	"tae/index/io/io_iface"
 )
 
 type StaticFilterIndexWriter struct {
@@ -18,6 +19,10 @@ type StaticFilterIndexWriter struct {
 	holder access_iface.PersistentIndexHolder
 	inner  basic.StaticFilter
 	colIdx uint16
+}
+
+func NewStaticFilterIndexWriter() io_iface.IStaticFilterIndexWriter {
+	return &StaticFilterIndexWriter{}
 }
 
 func (writer *StaticFilterIndexWriter) Init(holder access_iface.PersistentIndexHolder, cType common.CompressType, colIdx uint16) error {
@@ -75,6 +80,10 @@ func (writer *StaticFilterIndexWriter) Query(key interface{}) (bool, error) {
 type StaticFilterIndexReader struct {
 	handle *common.IndexBufferNode
 	inner  bufferInterface.MangaedNode
+}
+
+func NewStaticFilterIndexReader() io_iface.IStaticFilterIndexReader {
+	return &StaticFilterIndexReader{}
 }
 
 func (reader *StaticFilterIndexReader) Init(holder access_iface.PersistentIndexHolder, indexMeta *common.IndexMeta) error {

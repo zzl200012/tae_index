@@ -2,12 +2,11 @@ package access
 
 import (
 	"github.com/RoaringBitmap/roaring"
-	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"tae/index/access/access_iface"
 	"tae/index/basic"
 	"tae/index/common"
-	"tae/index/utils/io"
+	"tae/index/io"
 	"tae/mock"
 )
 
@@ -17,12 +16,22 @@ type AppendableBlockIndexHolder struct {
 	artIndex basic.ARTMap
 }
 
-func NewAppendableBlockIndexHolder(host *mock.Segment, pkType types.Type) *AppendableBlockIndexHolder {
+func NewAppendableBlockIndexHolder(host *mock.Segment/*, pkType types.Type*/) *AppendableBlockIndexHolder {
 	return &AppendableBlockIndexHolder{
 		host: host,
-		zoneMap:  basic.NewZoneMap(pkType, nil),
-		artIndex: basic.NewSimpleARTMap(pkType, nil),
+		zoneMap:  basic.NewZoneMap(host.GetPrimaryKeyType(), nil),
+		artIndex: basic.NewSimpleARTMap(host.GetPrimaryKeyType(), nil),
 	}
+}
+
+func (holder *AppendableBlockIndexHolder) GetBlockId() uint32 {
+	return holder.host.GetBlockId()
+}
+
+func (holder *AppendableBlockIndexHolder) Print() string {
+	zm := holder.zoneMap.Print()
+	art := holder.artIndex.Print()
+	return "<BLK>\n" + zm + "\n" + art
 }
 
 func (holder *AppendableBlockIndexHolder) Insert(key interface{}, offset uint32) (err error) {
@@ -102,23 +111,27 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 	var err error
 	var meta *common.IndexMeta
 	newHolder := NewNonAppendableBlockIndexHolder(holder.host)
-	zoneMapWriter := io.GetBlockZoneMapIndexWriter()
+	zoneMapWriter := io.NewBlockZoneMapIndexWriter()
 	err = zoneMapWriter.Init(newHolder, common.Plain, uint16(0)) // TODO: fill the args by passed fields
 	if err != nil {
 		return nil, err
 	}
-	zoneMapWriter.SetMinMax(holder.zoneMap.GetMin(), holder.zoneMap.GetMax())
+	zoneMapWriter.SetMinMax(holder.zoneMap.GetMin(), holder.zoneMap.GetMax(), holder.host.GetPrimaryKeyType())
+
 	meta, err = zoneMapWriter.Finalize()
 	if err != nil {
 		return nil, err
 	}
-	zoneMapReader := io.GetBlockZoneMapIndexReader()
+	zoneMapReader := io.NewBlockZoneMapIndexReader()
 	err = zoneMapReader.Init(newHolder, meta)
 	if err != nil {
 		return nil, err
 	}
-	staticFilterWriter := io.GetStaticFilterIndexWriter()
+	staticFilterWriter := io.NewStaticFilterIndexWriter()
 	var columnData *vector.Vector // TODO: fill the data
+
+	columnData = holder.artIndex.Freeze()
+
 	err = staticFilterWriter.Init(newHolder, common.Plain, uint16(0))
 	if err != nil {
 		return nil, err
@@ -131,7 +144,7 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 	if err != nil {
 		return nil, err
 	}
-	staticFilterReader := io.GetStaticFilterIndexReader()
+	staticFilterReader := io.NewStaticFilterIndexReader()
 	err = staticFilterReader.Init(newHolder, meta)
 	if err != nil {
 		return nil, err

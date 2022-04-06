@@ -5,6 +5,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	art "github.com/plar/go-adaptive-radix-tree"
+	"strconv"
 	"sync"
 	"tae/mock"
 )
@@ -18,6 +19,8 @@ type ARTMap interface {
 	Search(key interface{}) (uint32, error)
 	ContainsKey(key interface{}) (bool, error)
 	ContainsAnyKeys(keys *vector.Vector, visibility *roaring.Bitmap) (bool, error)
+	Print() string
+	Freeze() *vector.Vector
 }
 
 type simpleARTMap struct {
@@ -221,4 +224,38 @@ func (art *simpleARTMap) ContainsAnyKeysLocked(keys *vector.Vector, visibility *
 		}
 	}
 	return false, nil
+}
+
+func (art *simpleARTMap) Print() string {
+	art.mu.RLock()
+	defer art.mu.RUnlock()
+	min, _ := art.inner.Minimum()
+	max, _ := art.inner.Maximum() // TODO: seems not accurate here
+	return "<ART>\n" + "[" + strconv.Itoa(int(min.(uint32))) + ", " + strconv.Itoa(int(max.(uint32))) + "]" + "(" + strconv.Itoa(art.inner.Size()) + ")"
+}
+
+func (art *simpleARTMap) Freeze() *vector.Vector {
+	// TODO: support all types
+	art.mu.RLock()
+	defer art.mu.RUnlock()
+	iter := art.inner.Iterator()
+	vec := vector.New(art.typ)
+	keys := make([]int32, 0)
+	for iter.HasNext() {
+		node, err := iter.Next()
+		if err != nil {
+			panic(err)
+		}
+		key := mock.DecodeKey(node.Key(), art.typ).(int32)
+		//err = vector.Append(vec, key)
+		//if err != nil {
+		//	panic(err)
+		//}
+		keys = append(keys, key)
+	}
+	err := vector.Append(vec, keys)
+	if err != nil {
+		panic(err)
+	}
+	return vec
 }

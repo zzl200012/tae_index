@@ -12,6 +12,7 @@ import (
 	"tae/index/access/access_iface"
 	"tae/index/basic"
 	"tae/index/common"
+	"tae/index/io/io_iface"
 	"tae/mock"
 )
 
@@ -22,6 +23,10 @@ type SegmentZoneMapIndexWriter struct {
 	blockZoneMap *basic.ZoneMap
 	blockZoneMapBuffer [][]byte
 	colIdx uint16
+}
+
+func NewSegmentZoneMapIndexWriter() io_iface.ISegmentZoneMapIndexWriter {
+	return &SegmentZoneMapIndexWriter{}
 }
 
 func (writer *SegmentZoneMapIndexWriter) Init(holder access_iface.PersistentIndexHolder, cType common.CompressType, colIdx uint16) error {
@@ -111,6 +116,10 @@ func (writer *SegmentZoneMapIndexWriter) FinishBlock() error {
 type SegmentZoneMapIndexReader struct {
 	handle *common.IndexBufferNode
 	inner  iface.MangaedNode
+}
+
+func NewSegmentZoneMapIndexReader() io_iface.ISegmentZoneMapIndexReader {
+	return &SegmentZoneMapIndexReader{}
 }
 
 func (reader *SegmentZoneMapIndexReader) Init(holder access_iface.PersistentIndexHolder, indexMeta *common.IndexMeta) error {
@@ -212,7 +221,7 @@ func (reader *SegmentZoneMapIndexReader) MayContainsAnyKeys(keys *vector.Vector)
 
 func (reader *SegmentZoneMapIndexReader) Print() string {
 	reader.Load()
-	s := ""
+	s := "<SEG_ZM_READER>"
 	node := reader.inner.DataNode.(*SegmentZoneMapIndexMemNode)
 	s += node.segmentZoneMap.Print()
 	s += "\n"

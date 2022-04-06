@@ -22,12 +22,14 @@ type INonAppendableBlockIndexHolder interface {
 type IAppendableBlockIndexHolder interface {
 	InMemoryIndexHolder
 	dynamicPrimaryKeyResolver
+	IBlockIndexHolder
 	Freeze() (INonAppendableBlockIndexHolder, error)
 }
 
 type IAppendableSegmentIndexHolder interface {
 	dynamicPrimaryKeyResolver
-	Freeze() INonAppendableSegmentIndexHolder
+	ISegmentIndexHolder
+	Freeze() (INonAppendableSegmentIndexHolder, error)
 }
 
 type PersistentIndexHolder interface {
@@ -41,11 +43,13 @@ type InMemoryIndexHolder interface {
 }
 
 type ISegmentIndexHolder interface {
-
+	GetSegmentId() uint32
+	Print() string
 }
 
 type IBlockIndexHolder interface {
-
+	GetBlockId() uint32
+	Print() string
 }
 
 type dynamicPrimaryKeyResolver interface {

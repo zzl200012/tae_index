@@ -2,6 +2,7 @@ package io_iface
 
 import (
 	"github.com/RoaringBitmap/roaring"
+	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	buf "github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer"
 	"tae/index/access/access_iface"
@@ -33,12 +34,6 @@ type ISegmentZoneMapIndexReader interface {
 	Print() string
 }
 
-type ISegmentZoneMapIndexWriter interface {
-	IndexWriter
-	AddValues(values *vector.Vector) error
-	FinishBlock() error
-}
-
 type IBlockZoneMapIndexReader interface {
 	IndexReader
 	MayContainsKey(key interface{}) (bool, error)
@@ -46,9 +41,21 @@ type IBlockZoneMapIndexReader interface {
 	Print() string
 }
 
+type ISegmentZoneMapIndexWriter interface {
+	IndexWriter
+	AddValues(values *vector.Vector) error
+	FinishBlock() error
+}
+
 type IBlockZoneMapIndexWriter interface {
 	IndexWriter
 	AddValues(values *vector.Vector) error
+	SetMinMax(min, max interface{}, typ types.Type)
+}
+
+type IStaticFilterIndexWriter interface {
+	IndexWriter
+	SetValues(values *vector.Vector) error
 }
 
 type IndexMemNode interface {

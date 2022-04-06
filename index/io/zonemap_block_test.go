@@ -20,8 +20,7 @@ func TestBlockZoneMapIndex(t *testing.T) {
 	typ := types.Type{Oid: types.T_int32}
 	colIdx := uint16(0)
 	writer := BlockZoneMapIndexWriter{}
-	indexHolder := holder.MockNonAppendableSegmentIndexHolder()
-	indexHolder.SetHost(seg)
+	indexHolder := holder.MockPersistentIndexHolder(seg)
 	err = writer.Init(indexHolder, cType, colIdx)
 	require.NoError(t, err)
 
