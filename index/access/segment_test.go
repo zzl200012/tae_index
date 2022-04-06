@@ -21,7 +21,7 @@ func TestSegment(t *testing.T) {
 	blockCount := 40
 	rowsPerBlock := 20000
 	segment := mock.NewSegment()
-	holder := NewSegmentIndexHolder(segment)
+	holder := NewNonAppendableSegmentIndexHolder(segment)
 	writer := io.GetSegmentZoneMapIndexWriter()
 	err = writer.Init(holder, cTyp, colIdx)
 	require.NoError(t, err)

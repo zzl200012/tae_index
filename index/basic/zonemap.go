@@ -140,6 +140,12 @@ func (zm *ZoneMap) GetMax() interface{} {
 	return zm.GetMaxLocked()
 }
 
+func (zm *ZoneMap) SetMax(v interface{}) {
+	zm.mu.Lock()
+	defer zm.mu.Unlock()
+	zm.max = v
+}
+
 func (zm *ZoneMap) GetMaxLocked() interface{} {
 	return zm.max
 }
@@ -148,6 +154,12 @@ func (zm *ZoneMap) GetMin() interface{} {
 	zm.mu.RLock()
 	defer zm.mu.RUnlock()
 	return zm.GetMinLocked()
+}
+
+func (zm *ZoneMap) SetMin(v interface{}) {
+	zm.mu.Lock()
+	defer zm.mu.Unlock()
+	zm.min = v
 }
 
 func (zm *ZoneMap) GetMinLocked() interface{} {

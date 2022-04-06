@@ -22,7 +22,7 @@ type INonAppendableBlockIndexHolder interface {
 type IAppendableBlockIndexHolder interface {
 	InMemoryIndexHolder
 	dynamicPrimaryKeyResolver
-	Freeze() INonAppendableBlockIndexHolder
+	Freeze() (INonAppendableBlockIndexHolder, error)
 }
 
 type IAppendableSegmentIndexHolder interface {

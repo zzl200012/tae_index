@@ -31,11 +31,11 @@ func (holder *NonAppendableBlockIndexHolder) SetZoneMapReader(reader io_iface.IB
 	holder.zoneMapReader = reader
 }
 
-func (holder *NonAppendableBlockIndexHolder) GetFilterReaders() io_iface.IStaticFilterIndexReader {
+func (holder *NonAppendableBlockIndexHolder) GetFilterReader() io_iface.IStaticFilterIndexReader {
 	return holder.staticFilterReader
 }
 
-func (holder *NonAppendableBlockIndexHolder) SetFilterReaders(reader io_iface.IStaticFilterIndexReader) {
+func (holder *NonAppendableBlockIndexHolder) SetFilterReader(reader io_iface.IStaticFilterIndexReader) {
 	holder.staticFilterReader = reader
 }
 

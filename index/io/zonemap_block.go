@@ -69,6 +69,11 @@ func (writer *BlockZoneMapIndexWriter) AddValues(values *vector.Vector) error {
 	return nil
 }
 
+func (writer *BlockZoneMapIndexWriter) SetMinMax(min, max interface{}) {
+	writer.inner.SetMin(min)
+	writer.inner.SetMax(max)
+}
+
 type BlockZoneMapIndexReader struct {
 	handle *common.IndexBufferNode
 	inner  iface.MangaedNode

@@ -1,6 +1,7 @@
 package basic
 
 import (
+	"github.com/RoaringBitmap/roaring"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	art "github.com/plar/go-adaptive-radix-tree"
@@ -16,7 +17,7 @@ type ARTMap interface {
 	Delete(key interface{}) error
 	Search(key interface{}) (uint32, error)
 	ContainsKey(key interface{}) (bool, error)
-	ContainsAnyKeys(keys *vector.Vector) (bool, error)
+	ContainsAnyKeys(keys *vector.Vector, visibility *roaring.Bitmap) (bool, error)
 }
 
 type simpleARTMap struct {
@@ -195,13 +196,13 @@ func (art *simpleARTMap) ContainsKeyLocked(key interface{}) (bool, error) {
 	return false, nil
 }
 
-func (art *simpleARTMap) ContainsAnyKeys(keys *vector.Vector) (bool, error) {
+func (art *simpleARTMap) ContainsAnyKeys(keys *vector.Vector, visibility *roaring.Bitmap) (bool, error) {
 	art.mu.RLock()
 	defer art.mu.RUnlock()
-	return art.ContainsAnyKeysLocked(keys)
+	return art.ContainsAnyKeysLocked(keys, visibility)
 }
 
-func (art *simpleARTMap) ContainsAnyKeysLocked(keys *vector.Vector) (bool, error) {
+func (art *simpleARTMap) ContainsAnyKeysLocked(keys *vector.Vector, visibility *roaring.Bitmap) (bool, error) {
 	processor := func(v interface{}) error {
 		encoded, err := mock.EncodeKey(v, art.typ)
 		if err != nil {
@@ -212,7 +213,7 @@ func (art *simpleARTMap) ContainsAnyKeysLocked(keys *vector.Vector) (bool, error
 		}
 		return nil
 	}
-	if err := mock.ProcessVector(keys, processor, nil); err != nil {
+	if err := mock.ProcessVector(keys, processor, visibility); err != nil {
 		if err == mock.ErrKeyDuplicate {
 			return true, nil
 		} else {

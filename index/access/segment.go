@@ -15,7 +15,7 @@ type NonAppendableSegmentIndexHolder struct {
 	staticFilterReaders []io_iface.IStaticFilterIndexReader
 }
 
-func NewSegmentIndexHolder(host *mock.Segment) *NonAppendableSegmentIndexHolder {
+func NewNonAppendableSegmentIndexHolder(host *mock.Segment) *NonAppendableSegmentIndexHolder {
 	return &NonAppendableSegmentIndexHolder{host: host}
 }
 
