@@ -44,6 +44,7 @@ type IAppendableSegmentIndexHolder interface {
 type PersistentIndexHolder interface {
 	GetBufferManager() iface.IBufferManager
 	GetIndexAppender() *mock.Part
+	GetHost() *mock.Segment
 	MakeVirtualIndexFile(indexMeta *common.IndexMeta) *common.VirtualIndexFile
 }
 

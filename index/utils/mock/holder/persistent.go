@@ -11,6 +11,10 @@ type mockPersistentIndexHolder struct {
 	host *m.Segment
 }
 
+func (holder *mockPersistentIndexHolder) GetHost() *m.Segment {
+	panic("implement me")
+}
+
 func MockPersistentIndexHolder(host *m.Segment) access_iface.PersistentIndexHolder {
 	return &mockPersistentIndexHolder{host: host}
 }
