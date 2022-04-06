@@ -3,6 +3,7 @@ package access
 import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/stretchr/testify/require"
+	"tae/index/utils/mock/holder"
 	"tae/mock"
 	"testing"
 )
@@ -14,7 +15,7 @@ func TestNonAppendableBlockIndexHolder(t *testing.T) {
 	//blockCount := 40
 	rowsPerBatch := 10000
 	block := mock.NewSegment()
-	holder := NewAppendableBlockIndexHolder(block)
+	holder := holder.NewMockAppendableBlockIndexHolder(block)
 
 	batches := make([]*vector.Vector, 0)
 	for i := 0; i < 4; i++ {

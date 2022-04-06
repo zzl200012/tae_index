@@ -4,6 +4,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager/iface"
 	"tae/index/common"
+	"tae/index/io/io_iface"
 	"tae/mock"
 )
 
@@ -11,12 +12,20 @@ type INonAppendableSegmentIndexHolder interface {
 	PersistentIndexHolder
 	staticPrimaryKeyResolver
 	ISegmentIndexHolder
+	GetZoneMapReader() io_iface.ISegmentZoneMapIndexReader
+	SetZoneMapReader(reader io_iface.ISegmentZoneMapIndexReader)
+	GetFilterReaders() []io_iface.IStaticFilterIndexReader
+	SetFilterReaders(readers []io_iface.IStaticFilterIndexReader)
 }
 
 type INonAppendableBlockIndexHolder interface {
 	PersistentIndexHolder
 	staticPrimaryKeyResolver
 	IBlockIndexHolder
+	GetZoneMapReader() io_iface.IBlockZoneMapIndexReader
+	SetZoneMapReader(reader io_iface.IBlockZoneMapIndexReader)
+	GetFilterReader() io_iface.IStaticFilterIndexReader
+	SetFilterReader(readers io_iface.IStaticFilterIndexReader)
 }
 
 type IAppendableBlockIndexHolder interface {
@@ -34,7 +43,7 @@ type IAppendableSegmentIndexHolder interface {
 
 type PersistentIndexHolder interface {
 	GetBufferManager() iface.IBufferManager
-	GetWriter() *mock.Part
+	GetIndexAppender() *mock.Part
 	MakeVirtualIndexFile(indexMeta *common.IndexMeta) *common.VirtualIndexFile
 }
 
@@ -44,11 +53,13 @@ type InMemoryIndexHolder interface {
 
 type ISegmentIndexHolder interface {
 	GetSegmentId() uint32
+	GetHost() *mock.Segment
 	Print() string
 }
 
 type IBlockIndexHolder interface {
 	GetBlockId() uint32
+	GetHost() *mock.Segment
 	Print() string
 }
 

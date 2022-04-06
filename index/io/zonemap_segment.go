@@ -9,7 +9,6 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager/iface"
 	comm "github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/common"
 	"io"
-	"tae/index/access/access_iface"
 	"tae/index/basic"
 	"tae/index/common"
 	"tae/index/io/io_iface"
@@ -18,7 +17,8 @@ import (
 
 type SegmentZoneMapIndexWriter struct {
 	cType          common.CompressType
-	holder         access_iface.PersistentIndexHolder
+	//holder         access_iface.PersistentIndexHolder
+	appender *mock.Part
 	segmentZoneMap *basic.ZoneMap
 	blockZoneMap *basic.ZoneMap
 	blockZoneMapBuffer [][]byte
@@ -29,8 +29,9 @@ func NewSegmentZoneMapIndexWriter() io_iface.ISegmentZoneMapIndexWriter {
 	return &SegmentZoneMapIndexWriter{}
 }
 
-func (writer *SegmentZoneMapIndexWriter) Init(holder access_iface.PersistentIndexHolder, cType common.CompressType, colIdx uint16) error {
-	writer.holder = holder
+func (writer *SegmentZoneMapIndexWriter) Init(appender *mock.Part, cType common.CompressType, colIdx uint16) error {
+	//writer.holder = holder
+	writer.appender = appender
 	writer.cType = cType
 	writer.colIdx = colIdx
 	return nil
@@ -45,7 +46,7 @@ func (writer *SegmentZoneMapIndexWriter) Finalize() (*common.IndexMeta, error) {
 			return nil, err
 		}
 	}
-	appender := writer.holder.GetWriter()
+	appender := writer.appender
 	meta := common.NewEmptyIndexMeta()
 	meta.SetIndexType(common.SegmentZoneMapIndex)
 	meta.SetCompressType(writer.cType)
@@ -122,9 +123,11 @@ func NewSegmentZoneMapIndexReader() io_iface.ISegmentZoneMapIndexReader {
 	return &SegmentZoneMapIndexReader{}
 }
 
-func (reader *SegmentZoneMapIndexReader) Init(holder access_iface.PersistentIndexHolder, indexMeta *common.IndexMeta) error {
-	bufferManager := holder.GetBufferManager()
-	vFile := holder.MakeVirtualIndexFile(indexMeta)
+func (reader *SegmentZoneMapIndexReader) Init(host *mock.Segment, indexMeta *common.IndexMeta) error {
+	//bufferManager := holder.GetBufferManager()
+	//vFile := holder.MakeVirtualIndexFile(indexMeta)
+	bufferManager := host.FetchBufferManager()
+	vFile := common.MakeVirtualIndexFile(host, indexMeta)
 	reader.handle = common.NewIndexBufferNode(bufferManager, vFile, indexMeta.CompType != common.Plain, SegmentZoneMapIndexConstructor)
 	return nil
 }

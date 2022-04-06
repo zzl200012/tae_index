@@ -2,8 +2,8 @@ package io
 
 import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
-	"tae/index/access/access_iface"
 	"tae/index/common"
+	"tae/mock"
 )
 
 type mockSegmentZoneMapIndexWriter struct {
@@ -14,7 +14,7 @@ func NewMockSegmentZoneMapIndexWriter() *mockSegmentZoneMapIndexWriter {
 	return &mockSegmentZoneMapIndexWriter{}
 }
 
-func (writer *mockSegmentZoneMapIndexWriter) Init(holder access_iface.PersistentIndexHolder, cType common.CompressType, colIdx uint16) error {
+func (writer *mockSegmentZoneMapIndexWriter) Init(appender *mock.Part, cType common.CompressType, colIdx uint16) error {
 	panic("implement me")
 }
 
@@ -38,7 +38,7 @@ func NewMockBlockZoneMapIndexWriter() *mockBlockZoneMapIndexWriter {
 	return &mockBlockZoneMapIndexWriter{}
 }
 
-func (writer *mockBlockZoneMapIndexWriter) Init(holder access_iface.PersistentIndexHolder, cType common.CompressType, colIdx uint16) error {
+func (writer *mockBlockZoneMapIndexWriter) Init(appender *mock.Part, cType common.CompressType, colIdx uint16) error {
 	panic("implement me")
 }
 
@@ -58,7 +58,7 @@ func NewMockStaticFilterIndexWriter() *mockStaticFilterIndexWriter {
 	return &mockStaticFilterIndexWriter{}
 }
 
-func (writer *mockStaticFilterIndexWriter) Init(holder access_iface.PersistentIndexHolder, cType common.CompressType, colIdx uint16) error {
+func (writer *mockStaticFilterIndexWriter) Init(appender *mock.Part, cType common.CompressType, colIdx uint16) error {
 	panic("implement me")
 }
 

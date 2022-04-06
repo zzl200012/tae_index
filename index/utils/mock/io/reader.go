@@ -3,8 +3,8 @@ package io
 import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
-	"tae/index/access/access_iface"
 	"tae/index/common"
+	"tae/mock"
 )
 
 type mockSegmentZoneMapIndexReader struct {
@@ -15,7 +15,7 @@ func NewMockSegmentZoneMapIndexReader() *mockSegmentZoneMapIndexReader {
 	return &mockSegmentZoneMapIndexReader{}
 }
 
-func (reader *mockSegmentZoneMapIndexReader) Init(holder access_iface.PersistentIndexHolder, indexMeta *common.IndexMeta) error {
+func (reader *mockSegmentZoneMapIndexReader) Init(host *mock.Segment, indexMeta *common.IndexMeta) error {
 	panic("implement me")
 }
 
@@ -47,7 +47,7 @@ func NewMockBlockZoneMapIndexReader() *mockBlockZoneMapIndexReader {
 	return &mockBlockZoneMapIndexReader{}
 }
 
-func (reader *mockBlockZoneMapIndexReader) Init(holder access_iface.PersistentIndexHolder, indexMeta *common.IndexMeta) error {
+func (reader *mockBlockZoneMapIndexReader) Init(host *mock.Segment, indexMeta *common.IndexMeta) error {
 	panic("implement me")
 }
 
@@ -79,7 +79,7 @@ func NewMockStaticFilterIndexReader() *mockStaticFilterIndexReader {
 	return &mockStaticFilterIndexReader{}
 }
 
-func (reader *mockStaticFilterIndexReader) Init(holder access_iface.PersistentIndexHolder, indexMeta *common.IndexMeta) error {
+func (reader *mockStaticFilterIndexReader) Init(host *mock.Segment, indexMeta *common.IndexMeta) error {
 	panic("implement me")
 }
 

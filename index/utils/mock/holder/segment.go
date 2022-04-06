@@ -5,11 +5,16 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager/iface"
 	"tae/index/access/access_iface"
 	"tae/index/common"
+	"tae/index/io/io_iface"
 	m "tae/mock"
 )
 
 type mockAppendableSegmentIndexHolder struct {
 	host *m.Segment
+}
+
+func (holder *mockAppendableSegmentIndexHolder) GetHost() *m.Segment {
+	panic("implement me")
 }
 
 func NewMockAppendableSegmentIndexHolder(host *m.Segment) access_iface.IAppendableSegmentIndexHolder {
@@ -53,7 +58,29 @@ func (holder *mockAppendableSegmentIndexHolder) Freeze() (access_iface.INonAppen
 }
 
 type mockNonAppendableSegmentIndexHolder struct {
-	host *m.Segment
+	host          *m.Segment
+	zoneMapReader io_iface.ISegmentZoneMapIndexReader
+	staticFilterReaders []io_iface.IStaticFilterIndexReader
+}
+
+func (holder *mockNonAppendableSegmentIndexHolder) GetHost() *m.Segment {
+	panic("implement me")
+}
+
+func (holder *mockNonAppendableSegmentIndexHolder) GetZoneMapReader() io_iface.ISegmentZoneMapIndexReader {
+	panic("implement me")
+}
+
+func (holder *mockNonAppendableSegmentIndexHolder) SetZoneMapReader(reader io_iface.ISegmentZoneMapIndexReader) {
+	panic("implement me")
+}
+
+func (holder *mockNonAppendableSegmentIndexHolder) GetFilterReaders() []io_iface.IStaticFilterIndexReader {
+	panic("implement me")
+}
+
+func (holder *mockNonAppendableSegmentIndexHolder) SetFilterReaders(readers []io_iface.IStaticFilterIndexReader) {
+	panic("implement me")
 }
 
 func NewMockNonAppendableSegmentIndexHolder(host *m.Segment) access_iface.INonAppendableSegmentIndexHolder {
@@ -61,19 +88,34 @@ func NewMockNonAppendableSegmentIndexHolder(host *m.Segment) access_iface.INonAp
 }
 
 func (holder *mockNonAppendableSegmentIndexHolder) GetBufferManager() iface.IBufferManager {
-	panic("implement me")
+	return holder.host.FetchBufferManager()
 }
 
-func (holder *mockNonAppendableSegmentIndexHolder) GetWriter() *m.Part {
-	panic("implement me")
+func (holder *mockNonAppendableSegmentIndexHolder) GetIndexAppender() *m.Part {
+	return holder.host.FetchIndexWriter()
 }
 
 func (holder *mockNonAppendableSegmentIndexHolder) MakeVirtualIndexFile(indexMeta *common.IndexMeta) *common.VirtualIndexFile {
-	panic("implement me")
+	return common.MakeVirtualIndexFile(holder.host, indexMeta)
 }
 
 func (holder *mockNonAppendableSegmentIndexHolder) Search(key interface{}) (uint32, error) {
-	panic("implement me")
+	var err error
+	var blockOffset uint32
+	var exist bool
+	if err = holder.zoneMapReader.Load(); err != nil {
+		return 0, err
+	}
+	// TODO: handle the error
+	defer holder.zoneMapReader.Unload()
+	exist, blockOffset, err = holder.zoneMapReader.MayContainsKey(key)
+	if err != nil {
+		return 0, err
+	}
+	if !exist {
+		return 0, m.ErrKeyNotFound
+	}
+	return blockOffset, nil
 }
 
 func (holder *mockNonAppendableSegmentIndexHolder) ContainsKey(key interface{}) (bool, error) {
@@ -85,10 +127,10 @@ func (holder *mockNonAppendableSegmentIndexHolder) ContainsAnyKeys(keys *vector.
 }
 
 func (holder *mockNonAppendableSegmentIndexHolder) GetSegmentId() uint32 {
-	panic("implement me")
+	return 0
 }
 
 func (holder *mockNonAppendableSegmentIndexHolder) Print() string {
-	panic("implement me")
+	return ""
 }
 

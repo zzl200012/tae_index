@@ -8,7 +8,6 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager/iface"
 	comm "github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/common"
 	"io"
-	"tae/index/access/access_iface"
 	"tae/index/basic"
 	"tae/index/common"
 	"tae/index/io/io_iface"
@@ -17,7 +16,8 @@ import (
 
 type BlockZoneMapIndexWriter struct {
 	cType  common.CompressType
-	holder access_iface.PersistentIndexHolder
+	//holder access_iface.PersistentIndexHolder
+	appender *mock.Part
 	inner  *basic.ZoneMap
 	colIdx uint16
 }
@@ -26,8 +26,9 @@ func NewBlockZoneMapIndexWriter() io_iface.IBlockZoneMapIndexWriter {
 	return &BlockZoneMapIndexWriter{}
 }
 
-func (writer *BlockZoneMapIndexWriter) Init(holder access_iface.PersistentIndexHolder, cType common.CompressType, colIdx uint16) error {
-	writer.holder = holder
+func (writer *BlockZoneMapIndexWriter) Init(appender *mock.Part, cType common.CompressType, colIdx uint16) error {
+	//writer.holder = holder
+	writer.appender = appender
 	writer.cType = cType
 	writer.colIdx = colIdx
 	return nil
@@ -37,7 +38,7 @@ func (writer *BlockZoneMapIndexWriter) Finalize() (*common.IndexMeta, error) {
 	if writer.inner == nil {
 		panic("unexpected error")
 	}
-	appender := writer.holder.GetWriter()
+	appender := writer.appender
 	meta := common.NewEmptyIndexMeta()
 	meta.SetIndexType(common.BlockZoneMapIndex)
 	meta.SetCompressType(writer.cType)
@@ -96,9 +97,11 @@ func NewBlockZoneMapIndexReader() io_iface.IBlockZoneMapIndexReader {
 	return &BlockZoneMapIndexReader{}
 }
 
-func (reader *BlockZoneMapIndexReader) Init(holder access_iface.PersistentIndexHolder, indexMeta *common.IndexMeta) error {
-	bufferManager := holder.GetBufferManager()
-	vFile := holder.MakeVirtualIndexFile(indexMeta)
+func (reader *BlockZoneMapIndexReader) Init(host *mock.Segment, indexMeta *common.IndexMeta) error {
+	//bufferManager := holder.GetBufferManager()
+	//vFile := holder.MakeVirtualIndexFile(indexMeta)
+	bufferManager := host.FetchBufferManager()
+	vFile := common.MakeVirtualIndexFile(host, indexMeta)
 	reader.handle = common.NewIndexBufferNode(bufferManager, vFile, indexMeta.CompType != common.Plain, BlockZoneMapIndexConstructor)
 	//reader.Load()
 	//logrus.Info(reader.inner.DataNode.(*BlockZoneMapIndexMemNode).inner.GetMax())

@@ -55,7 +55,7 @@ func TestBlockZoneMapIndex(t *testing.T) {
 	keys = mock.MockVec(typ, 100, 0)
 	res, ans, err = reader.MayContainsAnyKeys(keys)
 	require.NoError(t, err)
-	require.False(t, res)
+	require.True(t, res)
 	require.Equal(t, uint64(100), ans.GetCardinality())
 
 	t.Log(indexHolder.GetBufferManager().String())

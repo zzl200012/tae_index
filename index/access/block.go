@@ -23,6 +23,10 @@ func (holder *NonAppendableBlockIndexHolder) GetBlockId() uint32 {
 	return holder.host.GetBlockId()
 }
 
+func (holder *NonAppendableBlockIndexHolder) GetHost() *mock.Segment {
+	return holder.host
+}
+
 func (holder *NonAppendableBlockIndexHolder) Print() string {
 	zm := holder.zoneMapReader.Print()
 	sf := holder.staticFilterReader.Print()
@@ -53,7 +57,7 @@ func (holder *NonAppendableBlockIndexHolder) GetBufferManager() iface.IBufferMan
 	return holder.host.FetchBufferManager()
 }
 
-func (holder *NonAppendableBlockIndexHolder) GetWriter() *mock.Part {
+func (holder *NonAppendableBlockIndexHolder) GetIndexAppender() *mock.Part {
 	return holder.host.FetchIndexWriter()
 }
 

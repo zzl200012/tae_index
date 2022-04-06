@@ -3,6 +3,7 @@ package access
 import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
+	"github.com/sirupsen/logrus"
 	"tae/index/access/access_iface"
 	"tae/index/basic"
 	"tae/index/common"
@@ -26,6 +27,10 @@ func NewAppendableBlockIndexHolder(host *mock.Segment/*, pkType types.Type*/) *A
 
 func (holder *AppendableBlockIndexHolder) GetBlockId() uint32 {
 	return holder.host.GetBlockId()
+}
+
+func (holder *AppendableBlockIndexHolder) GetHost() *mock.Segment {
+	return holder.host
 }
 
 func (holder *AppendableBlockIndexHolder) Print() string {
@@ -112,7 +117,7 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 	var meta *common.IndexMeta
 	newHolder := NewNonAppendableBlockIndexHolder(holder.host)
 	zoneMapWriter := io.NewBlockZoneMapIndexWriter()
-	err = zoneMapWriter.Init(newHolder, common.Plain, uint16(0)) // TODO: fill the args by passed fields
+	err = zoneMapWriter.Init(newHolder.GetIndexAppender(), common.Plain, uint16(0)) // TODO: fill the args by passed fields
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +128,7 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 		return nil, err
 	}
 	zoneMapReader := io.NewBlockZoneMapIndexReader()
-	err = zoneMapReader.Init(newHolder, meta)
+	err = zoneMapReader.Init(newHolder.host, meta)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +137,7 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 
 	columnData = holder.artIndex.Freeze()
 
-	err = staticFilterWriter.Init(newHolder, common.Plain, uint16(0))
+	err = staticFilterWriter.Init(newHolder.GetIndexAppender(), common.Plain, uint16(0))
 	if err != nil {
 		return nil, err
 	}
@@ -145,12 +150,13 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 		return nil, err
 	}
 	staticFilterReader := io.NewStaticFilterIndexReader()
-	err = staticFilterReader.Init(newHolder, meta)
+	err = staticFilterReader.Init(newHolder.host, meta)
 	if err != nil {
 		return nil, err
 	}
 	newHolder.SetZoneMapReader(zoneMapReader)
 	newHolder.SetFilterReader(staticFilterReader)
+	logrus.Info(newHolder.zoneMapReader.Print())
 	return newHolder, nil
 }
 

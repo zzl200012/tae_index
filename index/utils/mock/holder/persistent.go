@@ -19,7 +19,7 @@ func (holder *mockPersistentIndexHolder) GetBufferManager() iface.IBufferManager
 	return holder.host.FetchBufferManager()
 }
 
-func (holder *mockPersistentIndexHolder) GetWriter() *m.Part {
+func (holder *mockPersistentIndexHolder) GetIndexAppender() *m.Part {
 	return holder.host.FetchIndexWriter()
 }
 

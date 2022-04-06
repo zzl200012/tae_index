@@ -24,7 +24,7 @@ func TestSegment(t *testing.T) {
 	segment := mock.NewSegment()
 	holder := holder.NewMockNonAppendableSegmentIndexHolder(segment)
 	writer := io.NewMockSegmentZoneMapIndexWriter()
-	err = writer.Init(holder, cTyp, colIdx)
+	err = writer.Init(holder.GetIndexAppender(), cTyp, colIdx)
 	require.NoError(t, err)
 
 	var metas []*common.IndexMeta
@@ -47,7 +47,7 @@ func TestSegment(t *testing.T) {
 
 	for _, block := range blocks {
 		writer := io.NewMockStaticFilterIndexWriter()
-		err = writer.Init(holder, cTyp, colIdx)
+		err = writer.Init(holder.GetIndexAppender(), cTyp, colIdx)
 		require.NoError(t, err)
 		err = writer.SetValues(block)
 		require.NoError(t, err)
@@ -58,9 +58,9 @@ func TestSegment(t *testing.T) {
 
 	//helper.SetZoneMapReader(holder, io.NewMockSegmentZoneMapIndexReader())
 	//zoneMapReader := helper.GetZoneMapReader(holder)
-	holder.(*NonAppendableSegmentIndexHolder).SetZoneMapReader(io.NewMockSegmentZoneMapIndexReader())
-	zoneMapReader := holder.(*NonAppendableSegmentIndexHolder).GetZoneMapReader()
-	err = zoneMapReader.Init(holder, metas[0])
+	holder.SetZoneMapReader(io.NewMockSegmentZoneMapIndexReader())
+	zoneMapReader := holder.GetZoneMapReader()
+	err = zoneMapReader.Init(holder.GetHost(), metas[0])
 	require.NoError(t, err)
 
 	zoneMapReader.Load()
@@ -71,7 +71,7 @@ func TestSegment(t *testing.T) {
 	sfReaders := holder.(*NonAppendableSegmentIndexHolder).GetFilterReaders()
 	for _, meta := range metas[1:] {
 		reader := io.NewMockStaticFilterIndexReader()
-		err = reader.Init(holder, meta)
+		err = reader.Init(holder.GetHost(), meta)
 		require.NoError(t, err)
 		sfReaders = append(sfReaders, reader)
 	}

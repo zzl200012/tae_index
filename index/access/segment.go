@@ -23,6 +23,10 @@ func (holder *NonAppendableSegmentIndexHolder) GetSegmentId() uint32 {
 	return 0
 }
 
+func (holder *NonAppendableSegmentIndexHolder) GetHost() *mock.Segment {
+	return holder.host
+}
+
 func (holder *NonAppendableSegmentIndexHolder) SetHost(host *mock.Segment) {
 	holder.host = host
 }
@@ -147,7 +151,7 @@ func (holder *NonAppendableSegmentIndexHolder) GetBufferManager() iface.IBufferM
 	return holder.host.FetchBufferManager()
 }
 
-func (holder *NonAppendableSegmentIndexHolder) GetWriter() *mock.Part {
+func (holder *NonAppendableSegmentIndexHolder) GetIndexAppender() *mock.Part {
 	return holder.host.FetchIndexWriter()
 }
 

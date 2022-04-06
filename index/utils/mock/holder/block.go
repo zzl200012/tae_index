@@ -5,11 +5,16 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager/iface"
 	"tae/index/access/access_iface"
 	"tae/index/common"
+	"tae/index/io/io_iface"
 	m "tae/mock"
 )
 
 type mockAppendableBlockIndexHolder struct {
 	host *m.Segment
+}
+
+func (holder *mockAppendableBlockIndexHolder) GetHost() *m.Segment {
+	panic("implement me")
 }
 
 func NewMockAppendableBlockIndexHolder(host *m.Segment) access_iface.IAppendableBlockIndexHolder {
@@ -56,6 +61,26 @@ type mockNonAppendableBlockIndexHolder struct {
 	host *m.Segment
 }
 
+func (holder *mockNonAppendableBlockIndexHolder) GetHost() *m.Segment {
+	panic("implement me")
+}
+
+func (holder *mockNonAppendableBlockIndexHolder) GetZoneMapReader() io_iface.IBlockZoneMapIndexReader {
+	panic("implement me")
+}
+
+func (holder *mockNonAppendableBlockIndexHolder) SetZoneMapReader(reader io_iface.IBlockZoneMapIndexReader) {
+	panic("implement me")
+}
+
+func (holder *mockNonAppendableBlockIndexHolder) GetFilterReader() io_iface.IStaticFilterIndexReader {
+	panic("implement me")
+}
+
+func (holder *mockNonAppendableBlockIndexHolder) SetFilterReader(readers io_iface.IStaticFilterIndexReader) {
+	panic("implement me")
+}
+
 func NewMockNonAppendableBlockIndexHolder(host *m.Segment) access_iface.INonAppendableBlockIndexHolder {
 	return &mockNonAppendableBlockIndexHolder{host: host}
 }
@@ -64,7 +89,7 @@ func (holder *mockNonAppendableBlockIndexHolder) GetBufferManager() iface.IBuffe
 	panic("implement me")
 }
 
-func (holder *mockNonAppendableBlockIndexHolder) GetWriter() *m.Part {
+func (holder *mockNonAppendableBlockIndexHolder) GetIndexAppender() *m.Part {
 	panic("implement me")
 }
 

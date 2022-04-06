@@ -8,15 +8,16 @@ import (
 	comm "github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/common"
 	"github.com/sirupsen/logrus"
 	"io"
-	"tae/index/access/access_iface"
 	"tae/index/basic"
 	"tae/index/common"
 	"tae/index/io/io_iface"
+	"tae/mock"
 )
 
 type StaticFilterIndexWriter struct {
 	cType  common.CompressType
-	holder access_iface.PersistentIndexHolder
+	//holder access_iface.PersistentIndexHolder
+	appender *mock.Part
 	inner  basic.StaticFilter
 	colIdx uint16
 }
@@ -25,8 +26,9 @@ func NewStaticFilterIndexWriter() io_iface.IStaticFilterIndexWriter {
 	return &StaticFilterIndexWriter{}
 }
 
-func (writer *StaticFilterIndexWriter) Init(holder access_iface.PersistentIndexHolder, cType common.CompressType, colIdx uint16) error {
-	writer.holder = holder
+func (writer *StaticFilterIndexWriter) Init(appender *mock.Part, cType common.CompressType, colIdx uint16) error {
+	//writer.holder = holder
+	writer.appender = appender
 	writer.cType = cType
 	writer.colIdx = colIdx
 	return nil
@@ -36,7 +38,7 @@ func (writer *StaticFilterIndexWriter) Finalize() (*common.IndexMeta, error) {
 	if writer.inner == nil {
 		panic("unexpected error")
 	}
-	appender := writer.holder.GetWriter()
+	appender := writer.appender
 	meta := common.NewEmptyIndexMeta()
 	meta.SetIndexType(common.StaticFilterIndex)
 	meta.SetCompressType(writer.cType)
@@ -86,9 +88,11 @@ func NewStaticFilterIndexReader() io_iface.IStaticFilterIndexReader {
 	return &StaticFilterIndexReader{}
 }
 
-func (reader *StaticFilterIndexReader) Init(holder access_iface.PersistentIndexHolder, indexMeta *common.IndexMeta) error {
-	bufferManager := holder.GetBufferManager()
-	vFile := holder.MakeVirtualIndexFile(indexMeta)
+func (reader *StaticFilterIndexReader) Init(host *mock.Segment, indexMeta *common.IndexMeta) error {
+	//bufferManager := holder.GetBufferManager()
+	//vFile := holder.MakeVirtualIndexFile(indexMeta)
+	bufferManager := host.FetchBufferManager()
+	vFile := common.MakeVirtualIndexFile(host, indexMeta)
 	reader.handle = common.NewIndexBufferNode(bufferManager, vFile, indexMeta.CompType != common.Plain, StaticFilterIndexConstructor)
 	return nil
 }
