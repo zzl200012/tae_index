@@ -177,7 +177,8 @@ func (zm *ZoneMap) Print() string {
 	s += strconv.Itoa(int(zm.min.(int32)))
 	s += ","
 	s += strconv.Itoa(int(zm.max.(int32)))
-	s += "]"
+	s += "]\n"
+	s += "</ZM>"
 	return s
 }
 

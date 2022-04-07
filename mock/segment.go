@@ -41,35 +41,35 @@ func (p *Part) SeekCurrentOffset() uint32 {
 	return uint32(len(p.data))
 }
 
-type Segment struct {
+type Resource struct {
 	parts []*Part
 	bufferManager iface.IBufferManager
 }
 
-func NewSegment() *Segment {
-	seg := &Segment{parts: make([]*Part, 0)}
+func NewSegment() *Resource {
+	seg := &Resource{parts: make([]*Part, 0)}
 	_ = seg.Allocate() // first part is for indices
 	seg.bufferManager = manager.MockBufMgr(uint64(1024 * 100))
 	return seg
 }
 
-func (pc *Segment) GetBlockId() uint32 {
+func (pc *Resource) GetBlockId() uint32 {
 	return 0
 }
 
-func (pc *Segment) GetSegmentId() uint32 {
+func (pc *Resource) GetSegmentId() uint32 {
 	return 0
 }
 
-func (pc *Segment) GetPrimaryKeyType() types.Type {
+func (pc *Resource) GetPrimaryKeyType() types.Type {
 	return types.Type{Oid: types.T_int32}
 }
 
-//func (pc *Segment) MakeIndexHolder() *access.SegmentIndexHolder {
+//func (pc *Resource) MakeIndexHolder() *access.SegmentIndexHolder {
 //	return access.NewSegmentIndexHolder(pc)
 //}
 
-func (pc *Segment) Allocate() *Part {
+func (pc *Resource) Allocate() *Part {
 	p := &Part{
 		offset: uint32(len(pc.parts)),
 		data:   []byte(""),
@@ -78,17 +78,17 @@ func (pc *Segment) Allocate() *Part {
 	return p
 }
 
-func (pc *Segment) FetchPart(offset uint32) (*Part, error) {
+func (pc *Resource) FetchPart(offset uint32) (*Part, error) {
 	if int(offset) >= len(pc.parts) {
 		panic("fetch page out of bound")
 	}
 	return pc.parts[offset], nil
 }
 
-func (pc *Segment) FetchIndexWriter() *Part {
+func (pc *Resource) FetchIndexWriter() *Part {
 	return pc.parts[0]
 }
 
-func (pc *Segment) FetchBufferManager() iface.IBufferManager {
+func (pc *Resource) FetchBufferManager() iface.IBufferManager {
 	return pc.bufferManager
 }

@@ -10,12 +10,12 @@ import (
 )
 
 type NonAppendableBlockIndexHolder struct {
-	host          *mock.Segment
+	host          *mock.Resource
 	zoneMapReader      io_iface.IBlockZoneMapIndexReader
 	staticFilterReader io_iface.IStaticFilterIndexReader
 }
 
-func NewNonAppendableBlockIndexHolder(host *mock.Segment) *NonAppendableBlockIndexHolder {
+func NewNonAppendableBlockIndexHolder(host *mock.Resource) *NonAppendableBlockIndexHolder {
 	return &NonAppendableBlockIndexHolder{host: host}
 }
 
@@ -23,17 +23,17 @@ func (holder *NonAppendableBlockIndexHolder) GetBlockId() uint32 {
 	return holder.host.GetBlockId()
 }
 
-func (holder *NonAppendableBlockIndexHolder) GetHost() *mock.Segment {
+func (holder *NonAppendableBlockIndexHolder) GetHost() *mock.Resource {
 	return holder.host
 }
 
 func (holder *NonAppendableBlockIndexHolder) Print() string {
 	zm := holder.zoneMapReader.Print()
 	sf := holder.staticFilterReader.Print()
-	return zm + "\n" + sf
+	return "<BLK>\n" + zm + "\n" + sf + "\n" + "</BLK>"
 }
 
-func (holder *NonAppendableBlockIndexHolder) SetHost(host *mock.Segment) {
+func (holder *NonAppendableBlockIndexHolder) SetHost(host *mock.Resource) {
 	holder.host = host
 }
 

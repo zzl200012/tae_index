@@ -7,6 +7,13 @@ import (
 	"tae/mock"
 )
 
+type ITableIndexHolder interface {
+	dynamicPrimaryKeyResolver
+	GetTableId() uint32
+	GetHost() *mock.Resource
+	Print() string
+}
+
 type INonAppendableSegmentIndexHolder interface {
 	PersistentIndexHolder
 	staticPrimaryKeyResolver
@@ -23,19 +30,19 @@ type IAppendableBlockIndexHolder interface {
 	InMemoryIndexHolder
 	dynamicPrimaryKeyResolver
 	IBlockIndexHolder
-	Freeze() (INonAppendableBlockIndexHolder, error)
+	Upgrade() (INonAppendableBlockIndexHolder, error)
 }
 
 type IAppendableSegmentIndexHolder interface {
 	dynamicPrimaryKeyResolver
 	ISegmentIndexHolder
-	Freeze() (INonAppendableSegmentIndexHolder, error)
+	Upgrade() (INonAppendableSegmentIndexHolder, error)
 }
 
 type PersistentIndexHolder interface {
 	GetBufferManager() iface.IBufferManager
 	GetIndexAppender() *mock.Part
-	GetHost() *mock.Segment
+	GetHost() *mock.Resource
 	MakeVirtualIndexFile(indexMeta *common.IndexMeta) *common.VirtualIndexFile
 }
 
@@ -45,13 +52,13 @@ type InMemoryIndexHolder interface {
 
 type ISegmentIndexHolder interface {
 	GetSegmentId() uint32
-	GetHost() *mock.Segment
+	GetHost() *mock.Resource
 	Print() string
 }
 
 type IBlockIndexHolder interface {
 	GetBlockId() uint32
-	GetHost() *mock.Segment
+	GetHost() *mock.Resource
 	Print() string
 }
 

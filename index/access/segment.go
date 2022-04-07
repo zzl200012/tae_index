@@ -10,12 +10,12 @@ import (
 )
 
 type NonAppendableSegmentIndexHolder struct {
-	host          *mock.Segment
+	host          *mock.Resource
 	zoneMapReader io_iface.ISegmentZoneMapIndexReader
 	staticFilterReaders []io_iface.IStaticFilterIndexReader
 }
 
-func NewNonAppendableSegmentIndexHolder(host *mock.Segment) *NonAppendableSegmentIndexHolder {
+func NewNonAppendableSegmentIndexHolder(host *mock.Resource) *NonAppendableSegmentIndexHolder {
 	return &NonAppendableSegmentIndexHolder{host: host}
 }
 
@@ -23,11 +23,11 @@ func (holder *NonAppendableSegmentIndexHolder) GetSegmentId() uint32 {
 	return 0
 }
 
-func (holder *NonAppendableSegmentIndexHolder) GetHost() *mock.Segment {
+func (holder *NonAppendableSegmentIndexHolder) GetHost() *mock.Resource {
 	return holder.host
 }
 
-func (holder *NonAppendableSegmentIndexHolder) SetHost(host *mock.Segment) {
+func (holder *NonAppendableSegmentIndexHolder) SetHost(host *mock.Resource) {
 	holder.host = host
 }
 
@@ -160,7 +160,7 @@ func (holder *NonAppendableSegmentIndexHolder) MakeVirtualIndexFile(indexMeta *c
 }
 
 func (holder *NonAppendableSegmentIndexHolder) Print() string {
-	s := ""
+	s := "<SEG>\n"
 	zm := holder.zoneMapReader.Print()
 	s += zm
 	s += "\n"
@@ -168,5 +168,6 @@ func (holder *NonAppendableSegmentIndexHolder) Print() string {
 		s += sf.Print()
 		s += "\n"
 	}
+	s += "</SEG>"
 	return s
 }

@@ -11,12 +11,12 @@ import (
 )
 
 type AppendableBlockIndexHolder struct {
-	host *mock.Segment
+	host *mock.Resource
 	zoneMap *basic.ZoneMap
 	artIndex basic.ARTMap
 }
 
-func NewAppendableBlockIndexHolder(host *mock.Segment/*, pkType types.Type*/) *AppendableBlockIndexHolder {
+func NewAppendableBlockIndexHolder(host *mock.Resource /*, pkType types.Type*/) *AppendableBlockIndexHolder {
 	return &AppendableBlockIndexHolder{
 		host: host,
 		zoneMap:  basic.NewZoneMap(host.GetPrimaryKeyType(), nil),
@@ -28,14 +28,14 @@ func (holder *AppendableBlockIndexHolder) GetBlockId() uint32 {
 	return holder.host.GetBlockId()
 }
 
-func (holder *AppendableBlockIndexHolder) GetHost() *mock.Segment {
+func (holder *AppendableBlockIndexHolder) GetHost() *mock.Resource {
 	return holder.host
 }
 
 func (holder *AppendableBlockIndexHolder) Print() string {
 	zm := holder.zoneMap.Print()
 	art := holder.artIndex.Print()
-	return "<BLK>\n" + zm + "\n" + art
+	return "<A_BLK>\n" + zm + "\n" + art + "\n" + "</A_BLK>"
 }
 
 func (holder *AppendableBlockIndexHolder) Insert(key interface{}, offset uint32) (err error) {
@@ -111,7 +111,7 @@ func (holder *AppendableBlockIndexHolder) ContainsAnyKeys(keys *vector.Vector) (
 	return exist, nil
 }
 
-func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableBlockIndexHolder, error) {
+func (holder *AppendableBlockIndexHolder) Upgrade() (access_iface.INonAppendableBlockIndexHolder, error) {
 	var err error
 	var meta *common.IndexMeta
 	newHolder := NewNonAppendableBlockIndexHolder(holder.host)

@@ -34,7 +34,7 @@ func TestNonAppendableBlockIndexHolder(t *testing.T) {
 	}
 	//t.Log(indexHolder.Print())
 
-	newHolder, err := indexHolder.Freeze()
+	newHolder, err := indexHolder.Upgrade()
 	require.NoError(t, err)
 
 	t.Log(newHolder.Print())

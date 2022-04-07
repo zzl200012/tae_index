@@ -6,12 +6,12 @@ import (
 )
 
 type VirtualIndexFile struct {
-	host *mock.Segment
+	host *mock.Resource
 	meta *IndexMeta
 	stat *fileStat
 }
 
-func MakeVirtualIndexFile(segment *mock.Segment, meta *IndexMeta) *VirtualIndexFile {
+func MakeVirtualIndexFile(segment *mock.Resource, meta *IndexMeta) *VirtualIndexFile {
 	file := &VirtualIndexFile{
 		host: segment,
 		meta: meta,

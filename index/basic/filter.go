@@ -123,6 +123,8 @@ func (filter *binaryFuseFilter) Print() string {
 	s += strconv.Itoa(int(filter.inner.SegmentLengthMask))
 	s += "\n"
 	s += strconv.Itoa(len(filter.inner.Fingerprints))
+	s += "\n"
+	s += "</SF>"
 	return s
 }
 

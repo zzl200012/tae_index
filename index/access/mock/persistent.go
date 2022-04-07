@@ -7,14 +7,14 @@ import (
 )
 
 type mockPersistentIndexHolder struct {
-	host *m.Segment
+	host *m.Resource
 }
 
-func (holder *mockPersistentIndexHolder) GetHost() *m.Segment {
+func (holder *mockPersistentIndexHolder) GetHost() *m.Resource {
 	panic("implement me")
 }
 
-func NewMockPersistentIndexHolder(host *m.Segment) *mockPersistentIndexHolder {
+func NewMockPersistentIndexHolder(host *m.Resource) *mockPersistentIndexHolder {
 	return &mockPersistentIndexHolder{host: host}
 }
 

@@ -131,7 +131,7 @@ func (reader *BlockZoneMapIndexReader) MayContainsAnyKeys(keys *vector.Vector) (
 
 func (reader *BlockZoneMapIndexReader) Print() string {
 	reader.Load()
-	s := "<BLK_ZM_READER>"
+	s := ""
 	node := reader.inner.DataNode.(*BlockZoneMapIndexMemNode)
 	s += node.inner.Print()
 	reader.Unload()
