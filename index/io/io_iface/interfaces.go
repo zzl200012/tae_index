@@ -5,17 +5,17 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	buf "github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer"
+	"tae/index/access/access_iface"
 	"tae/index/common"
-	"tae/mock"
 )
 
 type IndexWriter interface {
-	Init(appender *mock.Part, cType common.CompressType, colIdx uint16) error
+	Init(holder access_iface.PersistentIndexHolder, cType common.CompressType, colIdx uint16) error
 	Finalize() (*common.IndexMeta, error)
 }
 
 type IndexReader interface {
-	Init(host *mock.Segment, indexMeta *common.IndexMeta) error
+	Init(holder access_iface.PersistentIndexHolder, indexMeta *common.IndexMeta) error
 	Load() error
 	Unload() error
 }

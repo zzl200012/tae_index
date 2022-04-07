@@ -5,8 +5,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/stretchr/testify/require"
 	"tae/index/common"
-	"tae/index/utils/mock/holder"
-	"tae/index/utils/mock/io"
+	"tae/index/io"
 	"tae/mock"
 	"testing"
 )
@@ -14,7 +13,6 @@ import (
 func TestSegment(t *testing.T) {
 	var err error
 	var res bool
-	//var ans *roaring.Bitmap
 	var meta *common.IndexMeta
 	typ := types.Type{Oid: types.T_int32}
 	cTyp := common.Plain
@@ -22,9 +20,9 @@ func TestSegment(t *testing.T) {
 	blockCount := 40
 	rowsPerBlock := 20000
 	segment := mock.NewSegment()
-	holder := holder.NewMockNonAppendableSegmentIndexHolder(segment)
-	writer := io.NewMockSegmentZoneMapIndexWriter()
-	err = writer.Init(holder.GetIndexAppender(), cTyp, colIdx)
+	indexHolder := NewNonAppendableSegmentIndexHolder(segment)
+	writer := io.NewSegmentZoneMapIndexWriter()
+	err = writer.Init(indexHolder, cTyp, colIdx)
 	require.NoError(t, err)
 
 	var metas []*common.IndexMeta
@@ -46,8 +44,8 @@ func TestSegment(t *testing.T) {
 	metas = append(metas, meta)
 
 	for _, block := range blocks {
-		writer := io.NewMockStaticFilterIndexWriter()
-		err = writer.Init(holder.GetIndexAppender(), cTyp, colIdx)
+		writer := io.NewStaticFilterIndexWriter()
+		err = writer.Init(indexHolder, cTyp, colIdx)
 		require.NoError(t, err)
 		err = writer.SetValues(block)
 		require.NoError(t, err)
@@ -56,35 +54,30 @@ func TestSegment(t *testing.T) {
 		metas = append(metas, meta)
 	}
 
-	//helper.SetZoneMapReader(holder, io.NewMockSegmentZoneMapIndexReader())
-	//zoneMapReader := helper.GetZoneMapReader(holder)
-	holder.SetZoneMapReader(io.NewMockSegmentZoneMapIndexReader())
-	zoneMapReader := holder.GetZoneMapReader()
-	err = zoneMapReader.Init(holder.GetHost(), metas[0])
+	indexHolder.SetZoneMapReader(io.NewSegmentZoneMapIndexReader())
+	zoneMapReader := indexHolder.GetZoneMapReader()
+	err = zoneMapReader.Init(indexHolder, metas[0])
 	require.NoError(t, err)
 
 	zoneMapReader.Load()
 
-	//t.Log(holder.zoneMapReader.Print())
-
-	//sfReaders := helper.GetFilterReaders(holder)
-	sfReaders := holder.(*NonAppendableSegmentIndexHolder).GetFilterReaders()
+	sfReaders := indexHolder.GetFilterReaders()
 	for _, meta := range metas[1:] {
-		reader := io.NewMockStaticFilterIndexReader()
-		err = reader.Init(holder.GetHost(), meta)
+
+		reader := io.NewStaticFilterIndexReader()
+		err = reader.Init(indexHolder, meta)
 		require.NoError(t, err)
 		sfReaders = append(sfReaders, reader)
 	}
-	//helper.SetFilterReaders(holder, sfReaders)
-	holder.(*NonAppendableSegmentIndexHolder).SetFilterReaders(sfReaders)
+	indexHolder.SetFilterReaders(sfReaders)
 
 	batch := mock.MockVec(typ, rowsPerBlock / 2, rowsPerBlock * blockCount)
-	res, err = holder.ContainsAnyKeys(batch)
+	res, err = indexHolder.ContainsAnyKeys(batch)
 	require.NoError(t, err)
 	require.False(t, res)
 
 	batch = mock.MockVec(typ, rowsPerBlock / 2, rowsPerBlock * blockCount - 10)
-	res, err = holder.ContainsAnyKeys(batch)
+	res, err = indexHolder.ContainsAnyKeys(batch)
 	require.NoError(t, err)
 	require.True(t, res)
 }

@@ -3,7 +3,6 @@ package access
 import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/stretchr/testify/require"
-	"tae/index/utils/mock/holder"
 	"tae/mock"
 	"testing"
 )
@@ -11,11 +10,9 @@ import (
 func TestNonAppendableBlockIndexHolder(t *testing.T) {
 	var err error
 	var res bool
-	//var meta *common.IndexMeta
-	//blockCount := 40
 	rowsPerBatch := 10000
 	block := mock.NewSegment()
-	holder := holder.NewMockAppendableBlockIndexHolder(block)
+	indexHolder := NewAppendableBlockIndexHolder(block)
 
 	batches := make([]*vector.Vector, 0)
 	for i := 0; i < 4; i++ {
@@ -24,21 +21,21 @@ func TestNonAppendableBlockIndexHolder(t *testing.T) {
 	}
 
 	for i, batch := range batches {
-		err = holder.BatchInsert(batch, 0, rowsPerBatch, uint32(rowsPerBatch*i), false)
+		err = indexHolder.BatchInsert(batch, 0, rowsPerBatch, uint32(rowsPerBatch*i), false)
 		require.NoError(t, err)
-		t.Log(holder.Search(batch.Col.([]int32)[rowsPerBatch / 2]))
-		res, err = holder.ContainsKey(int32(50000))
+		t.Log(indexHolder.Search(batch.Col.([]int32)[rowsPerBatch / 2]))
+		res, err = indexHolder.ContainsKey(int32(50000))
 		require.NoError(t, err)
 		require.False(t, res)
 		query := mock.MockVec(block.GetPrimaryKeyType(), rowsPerBatch, (i + 1) * rowsPerBatch)
-		res, err = holder.ContainsAnyKeys(query)
+		res, err = indexHolder.ContainsAnyKeys(query)
 		require.NoError(t, err)
 		require.False(t, res)
 	}
 
-	t.Log(holder.Print())
+	t.Log(indexHolder.Print())
 
-	newHolder, err := holder.Freeze()
+	newHolder, err := indexHolder.Freeze()
 	require.NoError(t, err)
 
 	t.Log(newHolder.Print())

@@ -4,8 +4,8 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/stretchr/testify/require"
+	mock2 "tae/index/access/mock"
 	"tae/index/common"
-	"tae/index/utils/mock/holder"
 	"tae/mock"
 	"testing"
 )
@@ -20,8 +20,8 @@ func TestBlockZoneMapIndex(t *testing.T) {
 	typ := types.Type{Oid: types.T_int32}
 	colIdx := uint16(0)
 	writer := BlockZoneMapIndexWriter{}
-	indexHolder := holder.MockPersistentIndexHolder(seg)
-	err = writer.Init(indexHolder.GetIndexAppender(), cType, colIdx)
+	indexHolder := mock2.NewMockPersistentIndexHolder(seg)
+	err = writer.Init(indexHolder, cType, colIdx)
 	require.NoError(t, err)
 
 	keys := mock.MockVec(typ, 1000, 0)
@@ -32,7 +32,7 @@ func TestBlockZoneMapIndex(t *testing.T) {
 	require.NoError(t, err)
 
 	reader := BlockZoneMapIndexReader{}
-	err = reader.Init(indexHolder.GetHost(), meta)
+	err = reader.Init(indexHolder, meta)
 	require.NoError(t, err)
 
 	err = reader.Load()

@@ -117,7 +117,7 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 	var meta *common.IndexMeta
 	newHolder := NewNonAppendableBlockIndexHolder(holder.host)
 	zoneMapWriter := io.NewBlockZoneMapIndexWriter()
-	err = zoneMapWriter.Init(newHolder.GetIndexAppender(), common.Plain, uint16(0)) // TODO: fill the args by passed fields
+	err = zoneMapWriter.Init(newHolder, common.Plain, uint16(0)) // TODO: fill the args by passed fields
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 		return nil, err
 	}
 	zoneMapReader := io.NewBlockZoneMapIndexReader()
-	err = zoneMapReader.Init(newHolder.host, meta)
+	err = zoneMapReader.Init(newHolder, meta)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 
 	columnData = holder.artIndex.Freeze()
 
-	err = staticFilterWriter.Init(newHolder.GetIndexAppender(), common.Plain, uint16(0))
+	err = staticFilterWriter.Init(newHolder, common.Plain, uint16(0))
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 		return nil, err
 	}
 	staticFilterReader := io.NewStaticFilterIndexReader()
-	err = staticFilterReader.Init(newHolder.host, meta)
+	err = staticFilterReader.Init(newHolder, meta)
 	if err != nil {
 		return nil, err
 	}

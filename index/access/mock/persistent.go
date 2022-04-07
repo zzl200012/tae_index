@@ -1,8 +1,7 @@
-package holder
+package mock
 
 import (
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager/iface"
-	"tae/index/access/access_iface"
 	"tae/index/common"
 	m "tae/mock"
 )
@@ -15,7 +14,7 @@ func (holder *mockPersistentIndexHolder) GetHost() *m.Segment {
 	panic("implement me")
 }
 
-func MockPersistentIndexHolder(host *m.Segment) access_iface.PersistentIndexHolder {
+func NewMockPersistentIndexHolder(host *m.Segment) *mockPersistentIndexHolder {
 	return &mockPersistentIndexHolder{host: host}
 }
 
