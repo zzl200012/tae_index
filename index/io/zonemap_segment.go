@@ -3,6 +3,7 @@ package io
 import (
 	"bytes"
 	"github.com/RoaringBitmap/roaring"
+	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/encoding"
 	buf "github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer"
@@ -92,6 +93,19 @@ func (writer *SegmentZoneMapIndexWriter) AddValues(values *vector.Vector) error 
 		return err
 	}
 	return nil
+}
+
+func (writer *SegmentZoneMapIndexWriter) SetMinMax(min, max interface{}, typ types.Type) {
+	if writer.blockZoneMap == nil {
+		writer.blockZoneMap = basic.NewZoneMap(typ, nil)
+		writer.segmentZoneMap = basic.NewZoneMap(typ, nil)
+	} else {
+		if writer.blockZoneMap.GetType() != typ {
+			panic(mock.ErrTypeMismatch)
+		}
+	}
+	writer.blockZoneMap.SetMin(min)
+	writer.blockZoneMap.SetMax(max)
 }
 
 func (writer *SegmentZoneMapIndexWriter) FinishBlock() error {

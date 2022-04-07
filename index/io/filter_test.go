@@ -25,7 +25,9 @@ func TestStaticFilterIndex(t *testing.T) {
 	require.NoError(t, err)
 
 	keys := mock.MockVec(typ, 1000, 0)
-	err = writer.SetValues(keys)
+	err = writer.AddValues(keys)
+	require.NoError(t, err)
+	err = writer.Finish()
 	require.NoError(t, err)
 
 	//t.Log(writer.inner.Print())

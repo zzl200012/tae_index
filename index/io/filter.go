@@ -12,12 +12,14 @@ import (
 	"tae/index/basic"
 	"tae/index/common"
 	"tae/index/io/io_iface"
+	"tae/mock"
 )
 
 type StaticFilterIndexWriter struct {
 	cType  common.CompressType
 	holder access_iface.PersistentIndexHolder
 	inner  basic.StaticFilter
+	data *vector.Vector
 	colIdx uint16
 }
 
@@ -57,18 +59,32 @@ func (writer *StaticFilterIndexWriter) Finalize() (*common.IndexMeta, error) {
 		return nil, err
 	}
 	//logrus.Info(writer.inner.GetMemoryUsage())
+	writer.inner = nil
 	return meta, nil
 }
 
-func (writer *StaticFilterIndexWriter) SetValues(values *vector.Vector) error {
+func (writer *StaticFilterIndexWriter) Finish() error {
 	if writer.inner != nil {
 		panic("updating immutable filter")
 	}
-	sf, err := basic.NewBinaryFuseFilter(values)
+	sf, err := basic.NewBinaryFuseFilter(writer.data)
 	if err != nil {
 		return err
 	}
 	writer.inner = sf
+	writer.data = nil
+	return nil
+}
+
+func (writer *StaticFilterIndexWriter) AddValues(values *vector.Vector) error {
+	if writer.data == nil {
+		writer.data = values
+		return nil
+	}
+	if writer.data.Typ != values.Typ {
+		return mock.ErrTypeMismatch
+	}
+	vector.Append(writer.data, values.Col)
 	return nil
 }
 

@@ -143,8 +143,15 @@ func (zm *ZoneMap) GetMax() interface{} {
 func (zm *ZoneMap) SetMax(v interface{}) {
 	zm.mu.Lock()
 	defer zm.mu.Unlock()
-	zm.initialized = true
-	zm.max = v
+	if !zm.initialized {
+		zm.min = v
+		zm.max = v
+		zm.initialized = true
+		return
+	}
+	if mock.Compare(v, zm.max, zm.typ) > 0 {
+		zm.max = v
+	}
 }
 
 func (zm *ZoneMap) GetMaxLocked() interface{} {
@@ -160,8 +167,15 @@ func (zm *ZoneMap) GetMin() interface{} {
 func (zm *ZoneMap) SetMin(v interface{}) {
 	zm.mu.Lock()
 	defer zm.mu.Unlock()
-	zm.initialized = true
-	zm.min = v
+	if !zm.initialized {
+		zm.min = v
+		zm.max = v
+		zm.initialized = true
+		return
+	}
+	if mock.Compare(v, zm.min, zm.typ) < 0 {
+		zm.min = v
+	}
 }
 
 func (zm *ZoneMap) GetMinLocked() interface{} {

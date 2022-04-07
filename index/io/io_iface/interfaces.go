@@ -55,7 +55,8 @@ type IBlockZoneMapIndexWriter interface {
 
 type IStaticFilterIndexWriter interface {
 	IndexWriter
-	SetValues(values *vector.Vector) error
+	Finish() error
+	AddValues(values *vector.Vector) error
 }
 
 type IndexMemNode interface {

@@ -36,10 +36,10 @@ func TestAppendableSegmentIndexHolder(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, indexHolder.ReadyToUpgrade())
 
-	t.Log(indexHolder.Print())
+	//t.Log(indexHolder.Print())
 
-	//upgraded, err := indexHolder.Upgrade()
-	//require.NoError(t, err)
+	upgraded, err := indexHolder.Upgrade()
+	require.NoError(t, err)
 
-	//t.Log(upgraded.Print())
+	t.Log(upgraded.Print())
 }

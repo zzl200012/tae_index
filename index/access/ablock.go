@@ -140,7 +140,11 @@ func (holder *AppendableBlockIndexHolder) Upgrade() (access_iface.INonAppendable
 	if err != nil {
 		return nil, err
 	}
-	err = staticFilterWriter.SetValues(columnData)
+	err = staticFilterWriter.AddValues(columnData)
+	if err != nil {
+		return nil, err
+	}
+	err = staticFilterWriter.Finish()
 	if err != nil {
 		return nil, err
 	}
