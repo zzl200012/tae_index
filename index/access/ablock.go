@@ -3,7 +3,6 @@ package access
 import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
-	"github.com/sirupsen/logrus"
 	"tae/index/access/access_iface"
 	"tae/index/basic"
 	"tae/index/common"
@@ -156,7 +155,7 @@ func (holder *AppendableBlockIndexHolder) Freeze() (access_iface.INonAppendableB
 	}
 	newHolder.SetZoneMapReader(zoneMapReader)
 	newHolder.SetFilterReader(staticFilterReader)
-	logrus.Info(newHolder.zoneMapReader.Print())
+	//logrus.Info(newHolder.staticFilterReader.Print())
 	return newHolder, nil
 }
 

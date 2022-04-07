@@ -168,12 +168,13 @@ func (node *BlockZoneMapIndexMemNode) ReadFrom(r io.Reader) (n int64, err error)
 }
 
 func (node *BlockZoneMapIndexMemNode) WriteTo(w io.Writer) (n int64, err error) {
-	buffer, err := node.Marshal()
-	if err != nil {
-		return 0, err
-	}
-	nw, err := w.Write(buffer)
-	return int64(nw), err
+	//buffer, err := node.Marshal()
+	//if err != nil {
+	//	return 0, err
+	//}
+	//nw, err := w.Write(buffer)
+	//return int64(nw), err
+	panic("no need")
 }
 
 func (node *BlockZoneMapIndexMemNode) Marshal() ([]byte, error) {

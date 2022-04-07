@@ -23,7 +23,7 @@ func TestNonAppendableBlockIndexHolder(t *testing.T) {
 	for i, batch := range batches {
 		err = indexHolder.BatchInsert(batch, 0, rowsPerBatch, uint32(rowsPerBatch*i), false)
 		require.NoError(t, err)
-		t.Log(indexHolder.Search(batch.Col.([]int32)[rowsPerBatch / 2]))
+		//t.Log(indexHolder.Search(batch.Col.([]int32)[rowsPerBatch / 2]))
 		res, err = indexHolder.ContainsKey(int32(50000))
 		require.NoError(t, err)
 		require.False(t, res)
@@ -32,8 +32,7 @@ func TestNonAppendableBlockIndexHolder(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, res)
 	}
-
-	t.Log(indexHolder.Print())
+	//t.Log(indexHolder.Print())
 
 	newHolder, err := indexHolder.Freeze()
 	require.NoError(t, err)
