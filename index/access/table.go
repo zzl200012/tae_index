@@ -204,5 +204,16 @@ func (holder *TableIndexHolder) GetHost() *mock.Resource {
 }
 
 func (holder *TableIndexHolder) Print() string {
-	panic("implement me")
+	holder.metaLatch.RLock()
+	defer holder.metaLatch.RUnlock()
+	s := ""
+	if holder.activeSegmentHolder != nil {
+		s += holder.activeSegmentHolder.Print()
+		s += "\n"
+	}
+	for _, frozen := range holder.frozenSegmentHolders {
+		s += frozen.Print()
+		s += "\n"
+	}
+	return s
 }

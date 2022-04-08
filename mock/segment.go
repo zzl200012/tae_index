@@ -2,6 +2,7 @@ package mock
 
 import (
 	"github.com/matrixorigin/matrixone/pkg/container/types"
+	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager/iface"
 )
@@ -43,13 +44,21 @@ func (p *Part) SeekCurrentOffset() uint32 {
 
 type Resource struct {
 	parts []*Part
+	children []*Resource
+	data *vector.Vector
 	bufferManager iface.IBufferManager
+}
+
+var bufManager iface.IBufferManager
+
+func init() {
+	bufManager = manager.MockBufMgr(uint64(1024 * 1024 * 1024))
 }
 
 func NewResource() *Resource {
 	seg := &Resource{parts: make([]*Part, 0)}
 	_ = seg.Allocate() // first part is for indices
-	seg.bufferManager = manager.MockBufMgr(uint64(1024 * 100))
+	seg.bufferManager = bufManager
 	return seg
 }
 
@@ -63,6 +72,26 @@ func (pc *Resource) GetSegmentId() uint32 {
 
 func (pc *Resource) GetPrimaryKeyType() types.Type {
 	return types.Type{Oid: types.T_int32}
+}
+
+func (pc *Resource) AppendData(data *vector.Vector) {
+	if pc.data == nil {
+		pc.data = data
+	} else {
+		vector.Append(pc.data, data.Col)
+	}
+}
+
+func (pc *Resource) GetData() *vector.Vector {
+	return pc.data
+}
+
+func (pc *Resource) AddChild(r *Resource) {
+	pc.children = append(pc.children, r)
+}
+
+func (pc *Resource) GetChildren() []*Resource {
+	return pc.children
 }
 
 //func (pc *Resource) MakeIndexHolder() *access.SegmentIndexHolder {

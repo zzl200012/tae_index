@@ -33,13 +33,16 @@ func TestTableIndexHolder(t *testing.T) {
 			block := mock.NewResource()
 			err = tableHolder.RegisterBlock(block)
 			require.NoError(t, err)
+			segment.AddChild(block)
 			for k := 0; k < batchPerBlock; k++ {
 				offset := counter * rowsPerBatch
 				batch := mock.MockVec(typ, rowsPerBatch, offset)
 				counter++
 				err = tableHolder.BatchInsert(batch, 0, rowsPerBatch, uint32(offset), true)
 				require.NoError(t, err)
+				block.AppendData(batch)
 			}
+			//segment.AppendData(block.GetData())
 			err = tableHolder.CloseCurrentActiveBlock()
 			require.NoError(t, err)
 		}
@@ -57,6 +60,7 @@ func TestTableIndexHolder(t *testing.T) {
 		batch := mock.MockVec(typ, batchSize, total + batchSize * i)
 		batches = append(batches, batch)
 	}
+	t.Log(tableHolder.Print())
 
 	start := time.Now()
 	for _, batch := range batches {
@@ -67,4 +71,7 @@ func TestTableIndexHolder(t *testing.T) {
 	t.Log("total rows: ", total)
 	t.Log("op: de-duplicating a batch of 30000 rows")
 	t.Log(time.Since(start).Milliseconds() / 10, " ms/op")
+
+	//t.Log(table.FetchBufferManager().String())
+	t.Log(tableHolder.Print())
 }

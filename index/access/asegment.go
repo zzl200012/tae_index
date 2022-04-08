@@ -1,7 +1,6 @@
 package access
 
 import (
-	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"sync"
 	"tae/index/access/access_iface"
@@ -167,11 +166,11 @@ func (holder *AppendableSegmentIndexHolder) Upgrade() (access_iface.INonAppendab
 	upgraded := NewNonAppendableSegmentIndexHolder(holder.host)
 
 	// TODO: fill new index holder with the real data
-	typ := types.Type{Oid: types.T_int32}
-	rowsPerBatch := 10000
-	batchesPerBlock :=  4
-	blockCount := 10
-	counter := 0
+	//typ := types.Type{Oid: types.T_int32}
+	//rowsPerBatch := 10000
+	//batchesPerBlock :=  4
+	//blockCount := 10
+	//counter := 0
 	zoneMapReader := io.NewSegmentZoneMapIndexReader()
 	staticFilterReaders := make([]io_iface.IStaticFilterIndexReader, 0)
 	zoneMapWriter := io.NewSegmentZoneMapIndexWriter()
@@ -179,22 +178,33 @@ func (holder *AppendableSegmentIndexHolder) Upgrade() (access_iface.INonAppendab
 	staticFilterWriter := io.NewStaticFilterIndexWriter()
 	staticFilterWriter.Init(upgraded, common.Plain, uint16(0))
 	metas := make([]*common.IndexMeta, 0)
-	for i := 0; i < blockCount; i++ {
-		for j := 0; j < batchesPerBlock; j++ {
-			offset := rowsPerBatch * counter
-			batch := mock.MockVec(typ, rowsPerBatch, offset)
-			counter++
-			zoneMapWriter.AddValues(batch)
-			staticFilterWriter.AddValues(batch)
-		}
+	blocks := holder.host.GetChildren()
+	for _, block := range blocks {
+		batch := block.GetData()
+		zoneMapWriter.AddValues(batch)
+		staticFilterWriter.AddValues(batch)
 		zoneMapWriter.FinishBlock()
 		staticFilterWriter.Finish()
 		meta, _ := staticFilterWriter.Finalize()
 		metas = append(metas, meta)
 	}
+	//for i := 0; i < blockCount; i++ {
+	//	for j := 0; j < batchesPerBlock; j++ {
+	//		offset := rowsPerBatch * counter
+	//		batch := mock.MockVec(typ, rowsPerBatch, offset)
+	//		counter++
+	//		zoneMapWriter.AddValues(batch)
+	//		staticFilterWriter.AddValues(batch)
+	//	}
+	//	zoneMapWriter.FinishBlock()
+	//	staticFilterWriter.Finish()
+	//	meta, _ := staticFilterWriter.Finalize()
+	//	metas = append(metas, meta)
+	//}
 	meta, _ := zoneMapWriter.Finalize()
 	metas = append(metas, meta)
 
+	blockCount := len(blocks)
 	for i := 0; i < blockCount; i++ {
 		sfR := io.NewStaticFilterIndexReader()
 		sfR.Init(upgraded, metas[i])
