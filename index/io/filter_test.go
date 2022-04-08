@@ -11,7 +11,7 @@ import (
 )
 
 func TestStaticFilterIndex(t *testing.T) {
-	seg := mock.NewSegment()
+	seg := mock.NewResource()
 	var err error
 	var res bool
 	var ans *roaring.Bitmap

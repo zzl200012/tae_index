@@ -18,7 +18,7 @@ func TestNonAppendableBlockIndexHolder(t *testing.T) {
 	colIdx := uint16(0)
 	batchPerBlock := 4
 	rowsPerBatch := 10000
-	block := mock.NewSegment()
+	block := mock.NewResource()
 	indexHolder := NewNonAppendableBlockIndexHolder(block)
 	zmWriter := io.NewBlockZoneMapIndexWriter()
 	err = zmWriter.Init(indexHolder, cTyp, colIdx)

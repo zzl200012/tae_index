@@ -46,7 +46,7 @@ type Resource struct {
 	bufferManager iface.IBufferManager
 }
 
-func NewSegment() *Resource {
+func NewResource() *Resource {
 	seg := &Resource{parts: make([]*Part, 0)}
 	_ = seg.Allocate() // first part is for indices
 	seg.bufferManager = manager.MockBufMgr(uint64(1024 * 100))

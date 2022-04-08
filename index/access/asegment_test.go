@@ -14,11 +14,13 @@ func TestAppendableSegmentIndexHolder(t *testing.T) {
 	rowsPerBatch := 10000
 	batchesPerBlock :=  4
 	blockCount := 10
-	segment := mock.NewSegment()
+	segment := mock.NewResource()
 	indexHolder := NewAppendableSegmentIndexHolder(segment)
 
 	counter := 0
 	for i := 0; i < blockCount; i++ {
+		block := mock.NewResource()
+		err = indexHolder.RegisterBlock(block)
 		for j := 0; j < batchesPerBlock; j++ {
 			offset := rowsPerBatch * counter
 			batch := mock.MockVec(typ, rowsPerBatch, offset)

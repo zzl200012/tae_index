@@ -11,7 +11,7 @@ func TestAppendableBlockIndexHolder(t *testing.T) {
 	var err error
 	var res bool
 	rowsPerBatch := 10000
-	block := mock.NewSegment()
+	block := mock.NewResource()
 	indexHolder := NewAppendableBlockIndexHolder(block)
 
 	batches := make([]*vector.Vector, 0)

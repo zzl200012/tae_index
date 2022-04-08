@@ -27,11 +27,21 @@ func NewAppendableSegmentIndexHolder(host *mock.Resource) *AppendableSegmentInde
 	}
 }
 
+func (holder *AppendableSegmentIndexHolder) RegisterBlock(block *mock.Resource) error {
+	holder.metaLatch.Lock()
+	defer holder.metaLatch.Unlock()
+	if holder.activeBlockHolder != nil {
+		panic("unexpected error")
+	}
+	holder.activeBlockHolder = NewAppendableBlockIndexHolder(block)
+	return nil
+}
+
 func (holder *AppendableSegmentIndexHolder) Insert(key interface{}, offset uint32) error {
 	holder.metaLatch.RLock()
 	defer holder.metaLatch.RUnlock()
 	if holder.activeBlockHolder == nil {
-		holder.activeBlockHolder = NewAppendableBlockIndexHolder(holder.GetHost())
+		panic("unexpected error")
 	}
 	return holder.activeBlockHolder.Insert(key, offset)
 }
@@ -40,7 +50,7 @@ func (holder *AppendableSegmentIndexHolder) BatchInsert(keys *vector.Vector, sta
 	holder.metaLatch.RLock()
 	defer holder.metaLatch.RUnlock()
 	if holder.activeBlockHolder == nil {
-		holder.activeBlockHolder = NewAppendableBlockIndexHolder(holder.GetHost())
+		panic("unexpected error")
 	}
 	return holder.activeBlockHolder.BatchInsert(keys, start, count, offset, verify)
 }
@@ -57,6 +67,15 @@ func (holder *AppendableSegmentIndexHolder) Delete(key interface{}) error {
 func (holder *AppendableSegmentIndexHolder) Search(key interface{}) (uint32, error) {
 	holder.metaLatch.RLock()
 	defer holder.metaLatch.RUnlock()
+	if holder.activeBlockHolder != nil {
+		if rowOffset, err := holder.activeBlockHolder.Search(key); err != nil {
+			if err != mock.ErrKeyNotFound {
+				return 0, err
+			}
+		} else {
+			return rowOffset, nil
+		}
+	}
 	for _, frozen := range holder.frozenBlockHolders {
 		if rowOffset, err := frozen.Search(key); err != nil {
 			if err != mock.ErrKeyNotFound {
@@ -66,7 +85,7 @@ func (holder *AppendableSegmentIndexHolder) Search(key interface{}) (uint32, err
 			return rowOffset, nil
 		}
 	}
-	return holder.activeBlockHolder.Search(key)
+	return 0, mock.ErrKeyNotFound
 }
 
 func (holder *AppendableSegmentIndexHolder) ContainsKey(key interface{}) (exist bool, err error) {

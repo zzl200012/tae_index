@@ -19,7 +19,7 @@ func TestSegment(t *testing.T) {
 	colIdx := uint16(0)
 	blockCount := 40
 	rowsPerBlock := 20000
-	segment := mock.NewSegment()
+	segment := mock.NewResource()
 	indexHolder := NewNonAppendableSegmentIndexHolder(segment)
 	writer := io.NewSegmentZoneMapIndexWriter()
 	err = writer.Init(indexHolder, cTyp, colIdx)
