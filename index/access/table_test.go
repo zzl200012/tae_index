@@ -65,5 +65,6 @@ func TestTableIndexHolder(t *testing.T) {
 		require.False(t, res)
 	}
 	t.Log("total rows: ", total)
+	t.Log("op: de-duplicating a batch of 30000 rows")
 	t.Log(time.Since(start).Milliseconds() / 10, " ms/op")
 }
