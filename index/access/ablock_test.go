@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestNonAppendableBlockIndexHolder(t *testing.T) {
+func TestAppendableBlockIndexHolder(t *testing.T) {
 	var err error
 	var res bool
 	rowsPerBatch := 10000

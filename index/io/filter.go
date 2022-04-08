@@ -138,7 +138,10 @@ func (reader *StaticFilterIndexReader) MayContainsAnyKeys(keys *vector.Vector, v
 func (reader *StaticFilterIndexReader) Print() string {
 	reader.Load()
 	defer reader.Unload()
-	return reader.inner.DataNode.(*StaticFilterIndexMemNode).inner.Print()
+	s := "<SEG_SF_READER>\n"
+	s += reader.inner.DataNode.(*StaticFilterIndexMemNode).inner.Print()
+	s += "</SEG_SF_READER>\n"
+	return s
 }
 
 func StaticFilterIndexConstructor(vf comm.IVFile, useCompress bool, freeFunc buf.MemoryFreeFunc) buf.IMemoryNode {

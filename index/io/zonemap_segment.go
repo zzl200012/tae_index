@@ -235,7 +235,7 @@ func (reader *SegmentZoneMapIndexReader) MayContainsAnyKeys(keys *vector.Vector)
 
 func (reader *SegmentZoneMapIndexReader) Print() string {
 	reader.Load()
-	s := "<SEG_ZM_READER>"
+	s := "<SEG_ZM_READER>\n"
 	node := reader.inner.DataNode.(*SegmentZoneMapIndexMemNode)
 	s += node.segmentZoneMap.Print()
 	s += "\n"
@@ -243,6 +243,7 @@ func (reader *SegmentZoneMapIndexReader) Print() string {
 		s += blk.Print()
 		s += "\n"
 	}
+	s += "</SEG_ZM_READER>\n"
 	reader.Unload()
 	return s
 }
