@@ -2,9 +2,11 @@ package access
 
 import (
 	"github.com/matrixorigin/matrixone/pkg/container/types"
+	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/stretchr/testify/require"
 	"tae/mock"
 	"testing"
+	"time"
 )
 
 func TestTableIndexHolder(t *testing.T) {
@@ -20,6 +22,7 @@ func TestTableIndexHolder(t *testing.T) {
 	//cTyp := common.Plain
 
 	var err error
+	var res bool
 
 	counter := 0
 	for i := 0; i < segmentCount; i++ {
@@ -44,6 +47,23 @@ func TestTableIndexHolder(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	t.Log(tableHolder.ContainsKey(int32(2333)))
-	t.Log(tableHolder.ContainsKey(int32(segmentCount * blockPerSegment * batchPerBlock * rowsPerBatch)))
+	//t.Log(tableHolder.ContainsKey(int32(2333)))
+	//t.Log(tableHolder.ContainsKey(int32(segmentCount * blockPerSegment * batchPerBlock * rowsPerBatch)))
+
+	total := segmentCount * blockPerSegment * batchPerBlock * rowsPerBatch
+	batchSize := 30000
+	batches := make([]*vector.Vector, 0)
+	for i := 0; i < 10; i++ {
+		batch := mock.MockVec(typ, batchSize, total + batchSize * i)
+		batches = append(batches, batch)
+	}
+
+	start := time.Now()
+	for _, batch := range batches {
+		res, err = tableHolder.ContainsAnyKeys(batch)
+		require.NoError(t, err)
+		require.False(t, res)
+	}
+	t.Log("total rows: ", total)
+	t.Log(time.Since(start).Milliseconds() / 10, " ms/op")
 }
