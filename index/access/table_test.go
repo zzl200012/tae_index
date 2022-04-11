@@ -4,14 +4,15 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/types"
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/stretchr/testify/require"
+	"tae/index/common"
 	"tae/mock"
 	"testing"
 	"time"
 )
 
 func TestTableIndexHolder(t *testing.T) {
-	table := mock.NewResource()
-	tableHolder := NewTableIndexHolder(table)
+	table := mock.NewTable()
+	tableHolder := NewTableIndexHolder(table.Resource)
 	segmentCount := 10
 	blockPerSegment := 40
 	batchPerBlock := 4
@@ -26,14 +27,14 @@ func TestTableIndexHolder(t *testing.T) {
 
 	counter := 0
 	for i := 0; i < segmentCount; i++ {
-		segment := mock.NewResource()
-		err = tableHolder.RegisterSegment(segment)
+		segment := table.NewSegment()
+		err = tableHolder.RegisterSegment(segment.Resource)
 		require.NoError(t, err)
 		for j := 0; j < blockPerSegment; j++ {
-			block := mock.NewResource()
-			err = tableHolder.RegisterBlock(block)
+			block := segment.NewBlock()
+			err = tableHolder.RegisterBlock(block.Resource)
 			require.NoError(t, err)
-			segment.AddChild(block)
+			segment.AddChild(block.Resource)
 			for k := 0; k < batchPerBlock; k++ {
 				offset := counter * rowsPerBatch
 				batch := mock.MockVec(typ, rowsPerBatch, offset)
@@ -42,11 +43,18 @@ func TestTableIndexHolder(t *testing.T) {
 				require.NoError(t, err)
 				block.AppendData(batch)
 			}
-			//segment.AppendData(block.GetData())
+			//if j == blockPerSegment - 1 && i == segmentCount - 1 {
+			//	break
+			//}
 			err = tableHolder.CloseCurrentActiveBlock()
 			require.NoError(t, err)
 		}
+		//if i == segmentCount - 1 {
+		//	break
+		//}
 		err = tableHolder.CloseCurrentActiveSegment()
+		require.NoError(t, err)
+		err = tableHolder.UpgradeSegment(segment.GetSegmentId())
 		require.NoError(t, err)
 	}
 
@@ -56,12 +64,16 @@ func TestTableIndexHolder(t *testing.T) {
 	total := segmentCount * blockPerSegment * batchPerBlock * rowsPerBatch
 	batchSize := 30000
 	batches := make([]*vector.Vector, 0)
-	for i := 0; i < 10; i++ {
+	batchCount := 10
+	for i := 0; i < batchCount; i++ {
 		batch := mock.MockVec(typ, batchSize, total + batchSize * i)
 		batches = append(batches, batch)
 	}
-	t.Log(tableHolder.Print())
+	t.Log(tableHolder.PrintShort())
 
+	common.ZoneMapConsulted = 0
+	common.StaticFilterConsulted = 0
+	common.ARTIndexConsulted = 0
 	start := time.Now()
 	for _, batch := range batches {
 		res, err = tableHolder.ContainsAnyKeys(batch)
@@ -72,6 +84,24 @@ func TestTableIndexHolder(t *testing.T) {
 	t.Log("op: de-duplicating a batch of 30000 rows")
 	t.Log(time.Since(start).Milliseconds() / 10, " ms/op")
 
-	//t.Log(table.FetchBufferManager().String())
-	t.Log(tableHolder.Print())
+	t.Log("filter: ", common.StaticFilterConsulted / float32(batchCount), " times consulted")
+	t.Log("zone map: ", common.ZoneMapConsulted / float32(batchCount), " times consulted")
+	t.Log("art: ", common.ARTIndexConsulted / float32(batchCount), " times consulted")
+
+	//data := make([]int32, 0)
+	//for i := 0; i < 100000; i++ {
+	//	data = append(data, int32(i))
+	//}
+	//start = time.Now()
+	//for _, d := range data {
+	//	res, err = tableHolder.ContainsKey(d)
+	//	require.NoError(t, err)
+	//	require.True(t, res)
+	//}
+	//t.Log(time.Since(start).Milliseconds(), " ms/op")
+	////t.Log(table.FetchBufferManager().String())
+	////t.Log(tableHolder.Print())
+	//
+	//t.Log("filter: ", common.StaticFilterConsulted, " times consulted")
+	//t.Log("zone map: ", common.ZoneMapConsulted, " times consulted")
 }

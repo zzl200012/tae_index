@@ -11,6 +11,7 @@ type TableIndexHolder struct {
 	host                 *mock.Resource
 	metaLatch            *sync.RWMutex
 	frozenSegmentHolders []access_iface.INonAppendableSegmentIndexHolder
+	closedSegmentHolder []*AppendableSegmentIndexHolder
 	activeSegmentHolder *AppendableSegmentIndexHolder
 }
 
@@ -59,22 +60,41 @@ func (holder *TableIndexHolder) CloseCurrentActiveBlock() error {
 }
 
 func (holder *TableIndexHolder) CloseCurrentActiveSegment() error {
-	// TODO: separate close and upgrade logic to 2 methods
 	holder.metaLatch.Lock()
 	defer holder.metaLatch.Unlock()
 	if holder.activeSegmentHolder == nil {
 		panic("unexpected error")
 	}
-	holder.activeSegmentHolder.MarkAsImmutable() // TODO: remove
-
-	if !holder.activeSegmentHolder.ReadyToUpgrade() {
-		panic("unexpected error")
+	if err := holder.activeSegmentHolder.MarkAsImmutable(); err != nil {
+		return err
 	}
-	frozen, err := holder.activeSegmentHolder.Upgrade()
+	closed := holder.activeSegmentHolder
+	holder.activeSegmentHolder = nil
+	holder.closedSegmentHolder = append(holder.closedSegmentHolder, closed)
+	return nil
+}
+
+func (holder *TableIndexHolder) UpgradeSegment(id uint32) error {
+	holder.metaLatch.Lock()
+	defer holder.metaLatch.Unlock()
+	var target *AppendableSegmentIndexHolder
+	for i, closed := range holder.closedSegmentHolder {
+		if closed.GetSegmentId() == id {
+			if !closed.ReadyToUpgrade() {
+				panic("unexpected error")
+			}
+			holder.closedSegmentHolder = append(holder.closedSegmentHolder[:i], holder.closedSegmentHolder[i+1:]...)
+			target = closed
+			break
+		}
+	}
+	if target == nil {
+		panic("segment not found")
+	}
+	frozen, err := target.Upgrade()
 	if err != nil {
 		return err
 	}
-	holder.activeSegmentHolder = nil
 	holder.frozenSegmentHolders = append(holder.frozenSegmentHolders, frozen)
 	return nil
 }
@@ -134,6 +154,16 @@ func (holder *TableIndexHolder) Search(key interface{}) (uint32, error) {
 			return rowOffset, nil
 		}
 	}
+	for _, closedSeg := range holder.closedSegmentHolder {
+		rowOffset, err := closedSeg.Search(key)
+		if err != nil {
+			if err != mock.ErrKeyNotFound {
+				return 0, err
+			}
+		} else {
+			return rowOffset, nil
+		}
+	}
 	for _, frozenSeg := range holder.frozenSegmentHolders {
 		rowOffset, err := frozenSeg.Search(key)
 		if err != nil {
@@ -152,6 +182,15 @@ func (holder *TableIndexHolder) ContainsKey(key interface{}) (bool, error) {
 	defer holder.metaLatch.RUnlock()
 	if holder.activeSegmentHolder != nil {
 		exist, err := holder.activeSegmentHolder.ContainsKey(key)
+		if err != nil {
+			return false, err
+		}
+		if exist {
+			return true, nil
+		}
+	}
+	for _, closedSeg := range holder.closedSegmentHolder {
+		exist, err := closedSeg.ContainsKey(key)
 		if err != nil {
 			return false, err
 		}
@@ -183,8 +222,17 @@ func (holder *TableIndexHolder) ContainsAnyKeys(keys *vector.Vector) (bool, erro
 			return true, nil
 		}
 	}
-	for _, frozen := range holder.frozenSegmentHolders {
-		exist, err := frozen.ContainsAnyKeys(keys)
+	for _, closedSeg := range holder.closedSegmentHolder {
+		exist, err := closedSeg.ContainsAnyKeys(keys)
+		if err != nil {
+			return false, err
+		}
+		if exist {
+			return true, nil
+		}
+	}
+	for _, frozenSeg := range holder.frozenSegmentHolders {
+		exist, err := frozenSeg.ContainsAnyKeys(keys)
 		if err != nil {
 			return false, err
 		}
@@ -196,11 +244,28 @@ func (holder *TableIndexHolder) ContainsAnyKeys(keys *vector.Vector) (bool, erro
 }
 
 func (holder *TableIndexHolder) GetTableId() uint32 {
-	panic("implement me")
+	return 0
 }
 
 func (holder *TableIndexHolder) GetHost() *mock.Resource {
 	return holder.host
+}
+
+func (holder *TableIndexHolder) PrintShort() string {
+	holder.metaLatch.RLock()
+	defer holder.metaLatch.RUnlock()
+	s := ""
+	if holder.activeSegmentHolder != nil {
+		s += "<ACT_SEG>"
+	}
+	for _, closed := range holder.closedSegmentHolder {
+		s += "<CLD_SEG>"
+		s += closed.segmentZoneMap.Print()
+	}
+	for range holder.frozenSegmentHolders {
+		s += "<FRZ_SEG>"
+	}
+	return s
 }
 
 func (holder *TableIndexHolder) Print() string {
@@ -209,6 +274,10 @@ func (holder *TableIndexHolder) Print() string {
 	s := ""
 	if holder.activeSegmentHolder != nil {
 		s += holder.activeSegmentHolder.Print()
+		s += "\n"
+	}
+	for _, closed := range holder.closedSegmentHolder {
+		s += closed.Print()
 		s += "\n"
 	}
 	for _, frozen := range holder.frozenSegmentHolders {

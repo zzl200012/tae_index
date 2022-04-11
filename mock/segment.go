@@ -5,6 +5,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager"
 	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/buffer/manager/iface"
+	"github.com/matrixorigin/matrixone/pkg/vm/engine/aoe/storage/common"
 )
 
 type Part struct {
@@ -43,6 +44,7 @@ func (p *Part) SeekCurrentOffset() uint32 {
 }
 
 type Resource struct {
+	id uint32
 	parts []*Part
 	children []*Resource
 	data *vector.Vector
@@ -50,9 +52,49 @@ type Resource struct {
 }
 
 var bufManager iface.IBufferManager
+var blkIdAlloc *common.IdAlloctor
+var segIdAlloc *common.IdAlloctor
 
 func init() {
 	bufManager = manager.MockBufMgr(uint64(1024 * 1024 * 1024))
+	segIdAlloc = common.NewIdAlloctor(1)
+	blkIdAlloc = common.NewIdAlloctor(1)
+}
+
+type Table struct {
+	*Resource
+}
+
+func NewTable() *Table {
+	return &Table{
+		Resource: NewResource(),
+	}
+}
+
+func (tbl *Table) NewSegment() *Segment {
+	s := &Segment{
+		Resource: NewResource(),
+	}
+	s.Resource.id = uint32(segIdAlloc.Alloc())
+	tbl.children = append(tbl.children, s.Resource)
+	return s
+}
+
+type Segment struct {
+	*Resource
+}
+
+func (seg *Segment) NewBlock() *Block {
+	b := &Block{
+		Resource: NewResource(),
+	}
+	b.Resource.id = uint32(blkIdAlloc.Alloc())
+	seg.children = append(seg.children, b.Resource)
+	return b
+}
+
+type Block struct {
+	*Resource
 }
 
 func NewResource() *Resource {
@@ -63,11 +105,11 @@ func NewResource() *Resource {
 }
 
 func (pc *Resource) GetBlockId() uint32 {
-	return 0
+	return pc.id
 }
 
 func (pc *Resource) GetSegmentId() uint32 {
-	return 0
+	return pc.id
 }
 
 func (pc *Resource) GetPrimaryKeyType() types.Type {

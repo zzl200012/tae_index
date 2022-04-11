@@ -4,6 +4,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"sync"
 	"tae/index/access/access_iface"
+	"tae/index/basic"
 	"tae/index/common"
 	"tae/index/io"
 	"tae/index/io/io_iface"
@@ -16,6 +17,7 @@ type AppendableSegmentIndexHolder struct {
 	frozenBlockHolders []access_iface.INonAppendableBlockIndexHolder
 	activeBlockHolder *AppendableBlockIndexHolder
 	immutable bool
+	segmentZoneMap *basic.ZoneMap
 }
 
 func NewAppendableSegmentIndexHolder(host *mock.Resource) *AppendableSegmentIndexHolder {
@@ -90,6 +92,15 @@ func (holder *AppendableSegmentIndexHolder) Search(key interface{}) (uint32, err
 func (holder *AppendableSegmentIndexHolder) ContainsKey(key interface{}) (exist bool, err error) {
 	holder.metaLatch.RLock()
 	defer holder.metaLatch.RUnlock()
+	if holder.immutable {
+		if exist, err = holder.QueryOnSegmentZoneMap(key); err == nil {
+			if !exist {
+				return false, nil
+			}
+		} else {
+			return false, err
+		}
+	}
 	if holder.activeBlockHolder != nil {
 		exist, err = holder.activeBlockHolder.ContainsKey(key)
 		if err != nil {
@@ -113,6 +124,15 @@ func (holder *AppendableSegmentIndexHolder) ContainsKey(key interface{}) (exist 
 func (holder *AppendableSegmentIndexHolder) ContainsAnyKeys(keys *vector.Vector) (exist bool, err error) {
 	holder.metaLatch.RLock()
 	defer holder.metaLatch.RUnlock()
+	if holder.immutable {
+		if exist, err = holder.QueryOnSegmentZoneMapMultiKeys(keys); err == nil {
+			if !exist {
+				return true, nil
+			}
+		} else {
+			return false, err
+		}
+	}
 	if holder.activeBlockHolder != nil {
 		exist, err = holder.activeBlockHolder.ContainsAnyKeys(keys)
 		if err != nil {
@@ -248,4 +268,33 @@ func (holder *AppendableSegmentIndexHolder) MarkAsImmutable() error {
 	}
 	holder.immutable = true
 	return nil
+}
+
+func (holder *AppendableSegmentIndexHolder) QueryOnSegmentZoneMap(key interface{}) (bool, error) {
+	if !holder.immutable {
+		panic("not supported")
+	}
+	return holder.segmentZoneMap.MayContainsKey(key)
+}
+
+func (holder *AppendableSegmentIndexHolder) QueryOnSegmentZoneMapMultiKeys(keys *vector.Vector) (bool, error) {
+	if !holder.immutable {
+		panic("not supported")
+	}
+	max := holder.segmentZoneMap.GetMax()
+	min := holder.segmentZoneMap.GetMin()
+	task := func (key interface{}) error {
+		if mock.Compare(key, min, holder.segmentZoneMap.GetType()) >= 0 && mock.Compare(key, max, holder.segmentZoneMap.GetType()) <= 0 {
+			return mock.ErrKeyDuplicate
+		}
+		return nil
+	}
+	if err := mock.ProcessVector(keys, task, nil); err != nil {
+		if err == mock.ErrKeyDuplicate {
+			return true, nil
+		} else {
+			return false, err
+		}
+	}
+	return false, nil
 }

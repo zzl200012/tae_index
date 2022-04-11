@@ -8,6 +8,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/container/vector"
 	"github.com/matrixorigin/matrixone/pkg/encoding"
 	"strconv"
+	"tae/index/common"
 	"tae/mock"
 )
 
@@ -51,6 +52,7 @@ func GetEmptyFilter() StaticFilter {
 }
 
 func (filter *binaryFuseFilter) MayContainsKey(key interface{}) (bool, error) {
+	common.StaticFilterConsulted++
 	hash, err := mock.Hash(key, filter.typ)
 	if err != nil {
 		return false, mock.ErrTypeMismatch
@@ -67,6 +69,7 @@ func (filter *binaryFuseFilter) MayContainsAnyKeys(keys *vector.Vector, visibili
 		if err != nil {
 			return err
 		}
+		common.StaticFilterConsulted++
 		if filter.inner.Contains(hash) {
 			positive.Add(row)
 		}
@@ -111,6 +114,7 @@ func (filter *binaryFuseFilter) Unmarshal(buf []byte) error {
 }
 
 func (filter *binaryFuseFilter) Print() string {
+	return "<SF></SF>"
 	s := "<SF>\n"
 	s += filter.typ.String()
 	s += "\n"

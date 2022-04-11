@@ -8,6 +8,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/encoding"
 	"strconv"
 	"sync"
+	"tae/index/common"
 	"tae/mock"
 )
 
@@ -92,6 +93,7 @@ func (zm *ZoneMap) Query(key interface{}) (int, error) {
 }
 
 func (zm *ZoneMap) MayContainsKey(key interface{}) (bool, error) {
+	common.ZoneMapConsulted++
 	// TODO: mismatch error
 	zm.mu.RLock()
 	defer zm.mu.RUnlock()
@@ -119,6 +121,7 @@ func (zm *ZoneMap) MayContainsAnyKeys(keys *vector.Vector) (bool, *roaring.Bitma
 	min := zm.GetMinLocked()
 	row := uint32(0)
 	process := func(key interface{}) error {
+		common.ZoneMapConsulted++
 		if mock.Compare(key, max, zm.typ) <= 0 && mock.Compare(key, min, zm.typ) >= 0 {
 			ans.Add(row)
 		}

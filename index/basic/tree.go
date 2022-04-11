@@ -7,6 +7,7 @@ import (
 	art "github.com/plar/go-adaptive-radix-tree"
 	"strconv"
 	"sync"
+	"tae/index/common"
 	"tae/mock"
 )
 
@@ -184,6 +185,7 @@ func (art *simpleARTMap) SearchLocked(key interface{}) (uint32, error) {
 func (art *simpleARTMap) ContainsKey(key interface{}) (bool, error) {
 	art.mu.RLock()
 	defer art.mu.RUnlock()
+	common.ARTIndexConsulted++
 	return art.ContainsKeyLocked(key)
 }
 
@@ -207,6 +209,7 @@ func (art *simpleARTMap) ContainsAnyKeys(keys *vector.Vector, visibility *roarin
 
 func (art *simpleARTMap) ContainsAnyKeysLocked(keys *vector.Vector, visibility *roaring.Bitmap) (bool, error) {
 	processor := func(v interface{}) error {
+		common.ARTIndexConsulted++
 		encoded, err := mock.EncodeKey(v, art.typ)
 		if err != nil {
 			return err

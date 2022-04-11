@@ -30,6 +30,18 @@ func Decompress(compressed []byte, ctyp CompressType) []byte {
 	return compressed
 }
 
+var StaticFilterConsulted float32
+
+var ZoneMapConsulted float32
+
+var ARTIndexConsulted float32
+
+func init() {
+	StaticFilterConsulted = 0
+	ZoneMapConsulted = 0
+	ARTIndexConsulted = 0
+}
+
 type IndexMeta struct {
 	IdxType IndexType
 	CompType CompressType
